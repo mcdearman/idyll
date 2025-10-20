@@ -18,8 +18,8 @@ data ExprKind
   = ExprInt Int
   | ExprVar Symbol
   | ExprLet [Bind] Expr
-  | ExprLam Symbol Expr
-  | ExprApp Expr Expr
+  | ExprLam [Symbol] Expr
+  | ExprApp Expr [Expr]
   | ExprError
   deriving (Show, Eq, Ord)
 

@@ -14,14 +14,14 @@ parseTerm :: Text -> Either (ParseErrorBundle Text Void) Expr
 parseTerm = runParser (sc *> exprParser <* eof) ""
 
 exprParser :: Parser Expr
-exprParser = app
+exprParser = withSpan app
   where
     int = ExprInt . fromInteger <$> lexeme L.decimal
     var = ExprVar <$> ident
-    atom = int <|> let' <|> var <|> lam <|> parens exprParser
+    atom = withSpan $ choice [int, let', var, lam, synNodeKind <$> parens exprParser]
     let' = try $ ExprLet <$> (symbol "let" *> bind) <*> (symbol "in" *> exprParser)
-    lam = symbol "\\" *> (flip (foldr ExprLam) <$> some ident <*> (symbol "->" *> exprParser))
-    app = foldl1 ExprApp <$> some atom
+    lam = ExprLam <$> (symbol "\\" *> some ident) <*> (symbol "->" *> exprParser)
+    app = ExprApp <$> atom <*> many atom
 
 bind :: Parser Bind
 bind = funBind <|> nameBind
@@ -32,8 +32,8 @@ bind = funBind <|> nameBind
 parens :: Parser a -> Parser a
 parens = lexeme <$> between (char '(') (char ')')
 
-ident :: Parser Text
-ident = try $ lexeme $ do
+ident :: Parser Ident
+ident = try $ withSpan $ lexeme $ do
   name <- pack <$> ((:) <$> identStartChar <*> many identChar) <* sc
   if name `elem` keywords
     then fail $ "keyword " ++ unpack name ++ " cannot be used in place of identifier"
@@ -75,8 +75,8 @@ sc = L.space space1 lineComment empty
 lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
 
-withSpan :: Parser a -> Parser (Spanned a)
+withSpan :: Parser a -> Parser (SynNode a)
 withSpan p = do
   start <- getOffset
   x <- p
-  Spanned x . Span start <$> getOffset
+  SynNode x . Span start <$> getOffset

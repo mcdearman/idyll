@@ -70,18 +70,22 @@ renameExpr expr = go $ synNodeKind expr
       where
         renameBind :: AST.Bind -> AST.Expr -> Rename ([Bind], Expr)
         renameBind (AST.BindName x e) b = do
-          x' <- Symbol <$> freshName $ synNodeKind x -- we add the name to the env first since laziness means it can be recursive
-          expr' <- renameExpr e
+          x' <- Symbol <$> freshName (synNodeKind x) <*> pure (synNodeSpan x) -- we add the name to the env first since laziness means it can be recursive
+          e' <- renameExpr e
           body' <- renameExpr b
           pure ([BindName x' e'], body')
-        renameBind (AST.BindFun f args expr) b = do
-          f' <- Symbol <$> freshName f
+        renameBind (AST.BindFun f args e) b = do
+          f' <- Symbol <$> freshName (synNodeKind f) <*> pure (synNodeSpan f)
           args' <- mapM (fmap Symbol . freshName) args
-          expr' <- renameExpr expr
+          e' <- renameExpr e
           body' <- renameExpr b
-          pure ([BindFun f' args' expr'], body')
-    go (AST.ExprLam x body) = do
-      x' <- Symbol <$> freshName x
+          pure ([BindFun f' args' e'], body')
+    go (AST.ExprLam params body) = do
+      x' <- Symbol <$> freshName (synNodeKind x) <*> pure (synNodeSpan x)
       body' <- renameExpr body
       pure $ ExprLam x' body'
-    go (AST.ExprApp f a) = ExprApp <$> renameExpr f <*> renameExpr a
+    go (AST.ExprApp f args) = do
+      f' <- renameExpr f
+      args' <- mapM renameExpr args
+      nodeId <- freshNodeId
+      pure $ HirNode nodeId (ExprApp f' args') (synNodeSpan expr)
