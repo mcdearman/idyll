@@ -45,7 +45,7 @@ executable idyllic
     Idyllic.Typing.Kind
     Idyllic.Typing.Ty
     Idyllic.Utils.LineIndex
-    Idyllic.Utils.Loc
+    Idyllic.Utils.Span
 
   default-extensions:
     BangPatterns
