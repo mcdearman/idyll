@@ -15,6 +15,7 @@ data ExprKind
   = ExprInt Int
   | ExprVar Ident
   | ExprLet Bind Expr
+  | ExprIf Expr Expr Expr
   | ExprLam [Ident] Expr
   | ExprApp Expr [Expr]
   deriving (Show, Eq, Ord)

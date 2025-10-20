@@ -14,14 +14,15 @@ parseTerm :: Text -> Either (ParseErrorBundle Text Void) Expr
 parseTerm = runParser (sc *> exprParser <* eof) ""
 
 exprParser :: Parser Expr
-exprParser = withSpan app
+exprParser = app <|> atom
   where
     int = ExprInt . fromInteger <$> lexeme L.decimal
     var = ExprVar <$> ident
-    atom = withSpan $ choice [int, let', var, lam, synNodeKind <$> parens exprParser]
+    atom = withSpan $ choice [int, let', if', var, lam, synNodeKind <$> parens exprParser]
     let' = try $ ExprLet <$> (symbol "let" *> bind) <*> (symbol "in" *> exprParser)
+    if' = try $ ExprIf <$> (symbol "if" *> exprParser) <*> (symbol "then" *> exprParser) <*> (symbol "else" *> exprParser)
     lam = ExprLam <$> (symbol "\\" *> some ident) <*> (symbol "->" *> exprParser)
-    app = ExprApp <$> atom <*> many atom
+    app = try $ withSpan $ ExprApp <$> atom <*> some atom
 
 bind :: Parser Bind
 bind = funBind <|> nameBind

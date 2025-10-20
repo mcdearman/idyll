@@ -17,7 +17,8 @@ data HirNode a = HirNode
 data ExprKind
   = ExprInt Int
   | ExprVar Symbol
-  | ExprLet [Bind] Expr
+  | ExprLet Bind Expr
+  | ExprIf Expr Expr Expr
   | ExprLam [Symbol] Expr
   | ExprApp Expr [Expr]
   | ExprError

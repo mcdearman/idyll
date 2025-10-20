@@ -4,7 +4,7 @@ import Control.Monad.State (MonadState (get, put), State, runState)
 import Data.Text (Text)
 import Idyllic.Rename.HIR
 import Idyllic.Rename.Symbol (Symbol (Symbol))
-import Idyllic.Syn.AST (SynNode (..))
+import Idyllic.Syn.AST (Ident, SynNode (..))
 import qualified Idyllic.Syn.AST as AST
 
 newtype RenameError = REUnboundName Text deriving (Show, Eq)
@@ -64,26 +64,33 @@ renameExpr expr = go $ synNodeKind expr
       let m = maybe ExprError ExprVar sym
       pure $ HirNode nodeId m (synNodeSpan expr)
     go (AST.ExprLet bind body) = do
-      (binds, body') <- renameBind bind body
+      (bind', body') <- renameBind bind body
       nodeId <- freshNodeId
-      pure $ HirNode nodeId (ExprLet binds body') (synNodeSpan expr)
+      pure $ HirNode nodeId (ExprLet bind' body') (synNodeSpan expr)
       where
-        renameBind :: AST.Bind -> AST.Expr -> Rename ([Bind], Expr)
+        renameBind :: AST.Bind -> AST.Expr -> Rename (Bind, Expr)
         renameBind (AST.BindName x e) b = do
           x' <- Symbol <$> freshName (synNodeKind x) <*> pure (synNodeSpan x) -- we add the name to the env first since laziness means it can be recursive
           e' <- renameExpr e
           body' <- renameExpr b
-          pure ([BindName x' e'], body')
+          pure (BindName x' e', body')
         renameBind (AST.BindFun f args e) b = do
           f' <- Symbol <$> freshName (synNodeKind f) <*> pure (synNodeSpan f)
-          args' <- mapM (fmap Symbol . freshName) args
+          args' <- mapM (\p -> Symbol <$> freshName (synNodeKind p) <*> pure (synNodeSpan p)) args
           e' <- renameExpr e
           body' <- renameExpr b
-          pure ([BindFun f' args' e'], body')
+          pure (BindFun f' args' e', body')
+    go (AST.ExprIf cond thenBr elseBr) = do
+      cond' <- renameExpr cond
+      thenBr' <- renameExpr thenBr
+      elseBr' <- renameExpr elseBr
+      nodeId <- freshNodeId
+      pure $ HirNode nodeId (ExprIf cond' thenBr' elseBr') (synNodeSpan expr)
     go (AST.ExprLam params body) = do
-      x' <- Symbol <$> freshName (synNodeKind x) <*> pure (synNodeSpan x)
+      params' <- mapM (\p -> Symbol <$> freshName (synNodeKind p) <*> pure (synNodeSpan p)) params
       body' <- renameExpr body
-      pure $ ExprLam x' body'
+      nodeId <- freshNodeId
+      pure $ HirNode nodeId (ExprLam params' body') (synNodeSpan expr)
     go (AST.ExprApp f args) = do
       f' <- renameExpr f
       args' <- mapM renameExpr args

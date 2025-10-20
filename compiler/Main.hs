@@ -7,8 +7,11 @@ import Data.Text.Lazy (toStrict)
 import Idyllic.Build.Driver (runDriver)
 import Idyllic.Build.Effect (defaultPipelineEnv)
 import Idyllic.Build.Pipeline
+import Idyllic.Rename.Resolver (rename)
+import Idyllic.Syn.Parser (parseTerm)
 import System.Console.Haskeline
-import Text.Pretty.Simple (pShow)
+import Text.Megaparsec (errorBundlePretty)
+import Text.Pretty.Simple (pPrint, pShow)
 
 settings :: Settings IO
 settings = defaultSettings {historyFile = Just ".repl_history"}
@@ -58,6 +61,17 @@ collectLines acc = do
     Just "" -> pure $ Just (init acc)
     Just input -> collectLines (acc ++ input ++ "\n")
 
+repl :: InputT IO ()
+repl = do
+  minput <- getMultilineInput ""
+  case minput of
+    Nothing -> return ()
+    Just input -> do
+      case parseTerm (pack input) of
+        Left err -> outputStrLn $ errorBundlePretty err
+        Right expr -> pPrint $ rename expr
+      repl
+
 run :: ByteString -> IO ()
 run src = do
   env <- defaultPipelineEnv src
@@ -73,7 +87,6 @@ run src = do
 --   Right prog -> putStrLn $ unpack . toStrict $ pShow prog
 
 main :: IO ()
-main = run "let x = 42 in x + 1"
-
--- putStrLn "Welcome to the miniML REPL!"
--- runInputT settings (repl defaultPipelineEnv)
+main = do
+  putStrLn "Welcome to the Idyll REPL!"
+  runInputT settings repl
