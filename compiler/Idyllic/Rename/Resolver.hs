@@ -64,8 +64,8 @@ renameExpr expr = go $ synNodeKind expr
       let m = maybe ExprError ExprVar sym
       pure $ HirNode nodeId m (synNodeSpan expr)
     go (AST.ExprLet bind body) = do
-      (bind', body') <- renameBind bind body
       nodeId <- freshNodeId
+      (bind', body') <- renameBind bind body
       pure $ HirNode nodeId (ExprLet bind' body') (synNodeSpan expr)
       where
         renameBind :: AST.Bind -> AST.Expr -> Rename (Bind, Expr)
@@ -81,18 +81,18 @@ renameExpr expr = go $ synNodeKind expr
           body' <- renameExpr b
           pure (BindFun f' args' e', body')
     go (AST.ExprIf cond thenBr elseBr) = do
+      nodeId <- freshNodeId
       cond' <- renameExpr cond
       thenBr' <- renameExpr thenBr
       elseBr' <- renameExpr elseBr
-      nodeId <- freshNodeId
       pure $ HirNode nodeId (ExprIf cond' thenBr' elseBr') (synNodeSpan expr)
     go (AST.ExprLam params body) = do
+      nodeId <- freshNodeId
       params' <- mapM (\p -> Symbol <$> freshName (synNodeKind p) <*> pure (synNodeSpan p)) params
       body' <- renameExpr body
-      nodeId <- freshNodeId
       pure $ HirNode nodeId (ExprLam params' body') (synNodeSpan expr)
     go (AST.ExprApp f args) = do
+      nodeId <- freshNodeId
       f' <- renameExpr f
       args' <- mapM renameExpr args
-      nodeId <- freshNodeId
       pure $ HirNode nodeId (ExprApp f' args') (synNodeSpan expr)
