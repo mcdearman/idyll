@@ -1,18 +1,11 @@
 module Idyllic.Rename.HIR where
 
 import Idyllic.Rename.Symbol (Symbol)
-import Idyllic.Utils.Span (Span)
+import Idyllic.Utils.Loc (Located)
 
 type NodeId = Int
 
-type Expr = HirNode ExprKind
-
-data HirNode a = HirNode
-  { nodeId :: !NodeId,
-    nodeKind :: a,
-    nodeSpan :: !Span
-  }
-  deriving (Show, Eq, Ord)
+type Expr = Located ExprKind
 
 data ExprKind
   = ExprInt Int

@@ -3,7 +3,7 @@ module Idyllic.Syn.Parser where
 import Data.Text (Text, pack, unpack)
 import Data.Void
 import Idyllic.Syn.AST
-import Idyllic.Utils.Span (Span (..), Spanned (..))
+import Idyllic.Utils.Loc (Loc (..), Located (..))
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -18,7 +18,7 @@ exprParser = app <|> atom
   where
     int = ExprInt . fromInteger <$> lexeme L.decimal
     var = ExprVar <$> ident
-    atom = withSpan $ choice [int, let', if', var, lam, synNodeKind <$> parens exprParser]
+    atom = withSpan $ choice [int, let', if', var, lam, unLoc <$> parens exprParser]
     let' = try $ ExprLet <$> (symbol "let" *> bind) <*> (symbol "in" *> exprParser)
     if' = try $ ExprIf <$> (symbol "if" *> exprParser) <*> (symbol "then" *> exprParser) <*> (symbol "else" *> exprParser)
     lam = ExprLam <$> (symbol "\\" *> some ident) <*> (symbol "->" *> exprParser)
@@ -76,8 +76,8 @@ sc = L.space space1 lineComment empty
 lineComment :: Parser ()
 lineComment = L.skipLineComment "--"
 
-withSpan :: Parser a -> Parser (SynNode a)
+withSpan :: Parser a -> Parser (Located a)
 withSpan p = do
   start <- getOffset
   x <- p
-  SynNode x . Span start <$> getOffset
+  Located x . Loc start <$> getOffset

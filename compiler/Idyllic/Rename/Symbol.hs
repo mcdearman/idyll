@@ -2,13 +2,9 @@ module Idyllic.Rename.Symbol where
 
 import Data.Map (Map)
 import Data.Text (Text)
-import Idyllic.Utils.Span (Span)
+import Idyllic.Utils.Loc (Located)
 
-data Symbol = Symbol
-  { symbolId :: Int,
-    symbolSpan :: Span
-  }
-  deriving (Show, Eq, Ord)
+type Symbol = Located Int
 
 data SymbolTable = SymbolTable
   { nextId :: Int,

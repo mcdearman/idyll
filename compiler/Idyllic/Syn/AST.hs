@@ -1,15 +1,9 @@
 module Idyllic.Syn.AST where
 
 import Data.Text (Text)
-import Idyllic.Utils.Span (Span)
+import Idyllic.Utils.Loc (Located)
 
-data SynNode a = SynNode
-  { synNodeKind :: a,
-    synNodeSpan :: !Span
-  }
-  deriving (Show, Eq, Ord)
-
-type Expr = SynNode ExprKind
+type Expr = Located ExprKind
 
 data ExprKind
   = ExprInt Int
@@ -22,4 +16,4 @@ data ExprKind
 
 data Bind = BindName Ident Expr | BindFun Ident [Ident] Expr deriving (Show, Eq, Ord)
 
-type Ident = SynNode Text
+type Ident = Located Text
