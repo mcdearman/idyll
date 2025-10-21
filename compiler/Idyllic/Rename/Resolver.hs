@@ -4,7 +4,7 @@ import Control.Monad.State (MonadState (get, put), State, runState)
 import Data.Text (Text)
 import Idyllic.Rename.HIR
 import Idyllic.Rename.Symbol (Symbol (Symbol))
-import Idyllic.Syn.AST (Ident, SynNode (..))
+import Idyllic.Syn.AST (SynNode (..))
 import qualified Idyllic.Syn.AST as AST
 
 newtype RenameError = REUnboundName Text deriving (Show, Eq)
@@ -18,7 +18,16 @@ data Env = Env
   deriving (Show, Eq)
 
 defaultEnv :: Env
-defaultEnv = Env [] 0 0 []
+defaultEnv =
+  let initialNames = zip ops [0 ..]
+   in Env
+        { nameMap = initialNames,
+          nameCounter = length ops,
+          nodeIdCounter = 0,
+          errors = []
+        }
+  where
+    ops = ["+", "-", "*", "/", "%", "neg", "==", "!=", "<", "<=", ">", ">=", "&&", "||"]
 
 find :: Text -> Rename (Maybe Int)
 find name = do
@@ -96,3 +105,22 @@ renameExpr expr = go $ synNodeKind expr
       f' <- renameExpr f
       args' <- mapM renameExpr args
       pure $ HirNode nodeId (ExprApp f' args') (synNodeSpan expr)
+    go (AST.ExprInfix l op r) = do
+      nodeId <- freshNodeId
+      l' <- renameExpr l
+      opId <- freshNodeId
+      r' <- renameExpr r
+      opSym <- find (synNodeKind op)
+      let opNode = case opSym of
+            Just s -> ExprVar (Symbol s (synNodeSpan op))
+            Nothing -> ExprError
+      pure $ HirNode nodeId (ExprApp (HirNode opId opNode (synNodeSpan op)) [l', r']) (synNodeSpan expr)
+    go (AST.Neg e) = do
+      nodeId <- freshNodeId
+      opId <- freshNodeId
+      e' <- renameExpr e
+      opSym <- find "neg"
+      let opNode = case opSym of
+            Just s -> ExprVar (Symbol s (synNodeSpan expr))
+            Nothing -> ExprError
+      pure $ HirNode nodeId (ExprApp (HirNode opId opNode (synNodeSpan expr)) [e']) (synNodeSpan expr)

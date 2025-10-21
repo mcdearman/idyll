@@ -69,7 +69,9 @@ repl = do
     Just input -> do
       case parseTerm (pack input) of
         Left err -> outputStrLn $ errorBundlePretty err
-        Right expr -> pPrint $ rename expr
+        Right expr -> do
+          pPrint expr
+          pPrint $ rename expr
       repl
 
 run :: ByteString -> IO ()

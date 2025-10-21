@@ -18,6 +18,8 @@ data ExprKind
   | ExprIf Expr Expr Expr
   | ExprLam [Ident] Expr
   | ExprApp Expr [Expr]
+  | ExprInfix Expr Ident Expr
+  | Neg Expr
   deriving (Show, Eq, Ord)
 
 data Bind = BindName Ident Expr | BindFun Ident [Ident] Expr deriving (Show, Eq, Ord)

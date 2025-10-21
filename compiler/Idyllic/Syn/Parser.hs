@@ -1,9 +1,10 @@
 module Idyllic.Syn.Parser where
 
+import Control.Monad.Combinators.Expr (Operator (..), makeExprParser)
 import Data.Text (Text, pack, unpack)
 import Data.Void
 import Idyllic.Syn.AST
-import Idyllic.Utils.Span (Span (..), Spanned (..))
+import Idyllic.Utils.Span (Span (..))
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -14,7 +15,7 @@ parseTerm :: Text -> Either (ParseErrorBundle Text Void) Expr
 parseTerm = runParser (sc *> exprParser <* eof) ""
 
 exprParser :: Parser Expr
-exprParser = app <|> atom
+exprParser = makeExprParser (app <|> atom) operatorTable
   where
     int = ExprInt . fromInteger <$> lexeme L.decimal
     var = ExprVar <$> ident
@@ -29,6 +30,25 @@ bind = funBind <|> nameBind
   where
     nameBind = BindName <$> (ident <* symbol "=") <*> exprParser
     funBind = try $ BindFun <$> ident <*> some ident <* symbol "=" <*> exprParser
+
+operatorTable :: [[Operator Parser Expr]]
+operatorTable =
+  [ [prefix "-" (\s e -> SynNode (Neg e) s)],
+    [ binary "*" (\s l r -> SynNode (ExprInfix l (SynNode "*" s) r) (synNodeSpan l <> synNodeSpan r)),
+      binary "/" (\s l r -> SynNode (ExprInfix l (SynNode "/" s) r) (synNodeSpan l <> synNodeSpan r)),
+      binary "%" (\s l r -> SynNode (ExprInfix l (SynNode "%" s) r) (synNodeSpan l <> synNodeSpan r))
+    ],
+    [ binary "+" (\s l r -> SynNode (ExprInfix l (SynNode "+" s) r) (synNodeSpan l <> synNodeSpan r)),
+      binary "-" (\s l r -> SynNode (ExprInfix l (SynNode "-" s) r) (synNodeSpan l <> synNodeSpan r))
+    ]
+  ]
+
+binary :: Text -> (Span -> Expr -> Expr -> Expr) -> Operator Parser Expr
+binary name f = InfixL (f . synNodeSpan <$> withSpan (symbol name))
+
+prefix, postfix :: Text -> (Span -> Expr -> Expr) -> Operator Parser Expr
+prefix name f = Prefix (f . synNodeSpan <$> withSpan (symbol name))
+postfix name f = Postfix (f . synNodeSpan <$> withSpan (symbol name))
 
 parens :: Parser a -> Parser a
 parens = lexeme <$> between (char '(') (char ')')
