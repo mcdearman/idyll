@@ -12,7 +12,7 @@ data SynNode a = SynNode
 type Expr = SynNode ExprKind
 
 data ExprKind
-  = ExprInt Int
+  = ExprLit Lit
   | ExprVar Ident
   | ExprLet Bind Expr
   | ExprIf Expr Expr Expr
@@ -25,3 +25,9 @@ data ExprKind
 data Bind = BindName Ident Expr | BindFun Ident [Ident] Expr deriving (Show, Eq, Ord)
 
 type Ident = SynNode Text
+
+data Lit
+  = LitInt Int
+  | LitBool Bool
+  | LitString Text
+  deriving (Show, Eq, Ord)

@@ -1,5 +1,6 @@
 module Idyllic.Rename.HIR where
 
+import Data.Text (Text)
 import Idyllic.Rename.Symbol (Symbol)
 import Idyllic.Utils.Span (Span)
 
@@ -15,7 +16,7 @@ data HirNode a = HirNode
   deriving (Show, Eq, Ord)
 
 data ExprKind
-  = ExprInt Int
+  = ExprLit Lit
   | ExprVar Symbol
   | ExprLet Bind Expr
   | ExprIf Expr Expr Expr
@@ -25,3 +26,9 @@ data ExprKind
   deriving (Show, Eq, Ord)
 
 data Bind = BindName Symbol Expr | BindFun Symbol [Symbol] Expr deriving (Show, Eq, Ord)
+
+data Lit
+  = LitInt Int
+  | LitBool Bool
+  | LitString Text
+  deriving (Show, Eq, Ord)

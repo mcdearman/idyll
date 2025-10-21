@@ -63,9 +63,15 @@ renameExpr :: AST.Expr -> Rename Expr
 renameExpr expr = go $ synNodeKind expr
   where
     go :: AST.ExprKind -> Rename Expr
-    go (AST.ExprInt n) = do
+    go (AST.ExprLit (AST.LitInt n)) = do
       nodeId <- freshNodeId
-      pure $ HirNode nodeId (ExprInt n) (synNodeSpan expr)
+      pure $ HirNode nodeId (ExprLit (LitInt n)) (synNodeSpan expr)
+    go (AST.ExprLit (AST.LitBool b)) = do
+      nodeId <- freshNodeId
+      pure $ HirNode nodeId (ExprLit (LitBool b)) (synNodeSpan expr)
+    go (AST.ExprLit (AST.LitString s)) = do
+      nodeId <- freshNodeId
+      pure $ HirNode nodeId (ExprLit (LitString s)) (synNodeSpan expr)
     go (AST.ExprVar x) = do
       nodeId <- freshNodeId
       var <- find $ synNodeKind x

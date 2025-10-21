@@ -17,13 +17,19 @@ parseTerm = runParser (sc *> exprParser <* eof) ""
 exprParser :: Parser Expr
 exprParser = makeExprParser (app <|> atom) operatorTable
   where
-    int = ExprInt . fromInteger <$> lexeme L.decimal
+    lit' = ExprLit <$> lit
     var = ExprVar <$> ident
-    atom = withSpan $ choice [int, let', if', var, lam, synNodeKind <$> parens exprParser]
+    atom = withSpan $ choice [lit', let', if', var, lam, synNodeKind <$> parens exprParser]
     let' = try $ ExprLet <$> (symbol "let" *> bind) <*> (symbol "in" *> exprParser)
     if' = try $ ExprIf <$> (symbol "if" *> exprParser) <*> (symbol "then" *> exprParser) <*> (symbol "else" *> exprParser)
     lam = ExprLam <$> (symbol "\\" *> some ident) <*> (symbol "->" *> exprParser)
     app = try $ withSpan $ ExprApp <$> atom <*> some atom
+
+lit :: Parser Lit
+lit = choice [LitInt . fromInteger <$> lexeme L.decimal, boolLit, stringLit]
+  where
+    boolLit = (LitBool True <$ symbol "True") <|> (LitBool False <$ symbol "False")
+    stringLit = LitString . pack <$> between (char '"') (char '"') (manyTill L.charLiteral (lookAhead (char '"')))
 
 bind :: Parser Bind
 bind = funBind <|> nameBind
