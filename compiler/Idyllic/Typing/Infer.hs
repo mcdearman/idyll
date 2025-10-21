@@ -6,6 +6,7 @@ module Idyllic.Typing.Infer where
 import Control.Monad.ST (ST, runST)
 import Data.Map (Map)
 import Data.STRef (STRef, modifySTRef', newSTRef, readSTRef, writeSTRef)
+import Data.Text (Text)
 import Idyllic.Rename.Symbol (Symbol)
 import Idyllic.Typing.Ty (ClosedTy (..), Level, Meta (..), Ty (..))
 
@@ -14,6 +15,17 @@ data TyError s
   | InfiniteTy Int (Ty s)
   | UnboundVariable Symbol
   deriving (Eq)
+
+newtype SymbolTable = SymbolTable {symTabEntries :: [SymbolEntry]} deriving (Show, Eq, Ord)
+
+data SymbolEntry = SymbolEntry
+  { entrySymbol :: Symbol,
+    entryTy :: ClosedTy
+  }
+  deriving (Show, Eq, Ord)
+
+emptyTable :: SymbolTable
+emptyTable = SymbolTable []
 
 data Scheme = Forall [Int] ClosedTy deriving (Show, Eq, Ord)
 
@@ -51,6 +63,11 @@ withLevel (Infer m) = Infer $ \st -> do
   a <- m st
   modifySTRef' st (\s' -> s' {level = level s' - 1})
   pure a
+
+unify :: Ty s -> Ty s -> Infer s ()
+unify t1 t2 = go (zonk t1) (zonk t2)
+  where
+    go = undefined
 
 zonk :: Ty s -> Infer s (Ty s)
 zonk (TyCon c) = pure (TyCon c)
