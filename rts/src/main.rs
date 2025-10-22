@@ -1,7 +1,9 @@
 pub mod vm;
 
 use iced::theme;
-use iced::widget::{column, container, horizontal_rule, row, scrollable, text, text_editor, Space};
+use iced::widget::{
+    column, container, horizontal_rule, row, scrollable, text, text_editor, text_input, Space,
+};
 use iced::Renderer;
 use iced::{
     mouse, Alignment, Application, Color, Command, Element, Length, Pixels, Point, Rectangle,
@@ -29,6 +31,11 @@ struct Workbench {
     ast: Result<Expr, Err>,
     logs: Vec<String>,
     node_view: NodeEditor,
+
+    // edit UI state
+    edit_path: Option<Vec<usize>>, // path of selected node
+    edit_kind: Option<EditKind>,
+    edit_text: String, // input field for Var/Int
 }
 
 impl Default for Workbench {
@@ -44,6 +51,9 @@ impl Default for Workbench {
             }),
             logs: Vec::new(),
             node_view: NodeEditor::default(),
+            edit_path: None,
+            edit_kind: None,
+            edit_text: String::new(),
         }
     }
 }
@@ -52,7 +62,24 @@ impl Default for Workbench {
 enum Msg {
     Editor(text_editor::Action),
     NodeEditor(NodeEvent),
+
+    // Edit panel
+    BeginEdit,               // start editing currently selected
+    EditTextChanged(String), // text_input change
+    ApplyEdit,               // apply edit
+    CancelEdit,              // cancel
 }
+
+/* ========================= Editable kinds ========================= */
+
+#[derive(Clone, Debug)]
+enum EditKind {
+    RenameVar, // uses edit_text (identifier)
+    SetInt,    // uses edit_text (i64)
+    ToggleOp,  // toggles between == and -
+}
+
+/* ========================= Application impl ========================= */
 
 impl Application for Workbench {
     type Executor = iced::executor::Default;
@@ -67,7 +94,7 @@ impl Application for Workbench {
     }
 
     fn title(&self) -> String {
-        "Idyll".into()
+        "Live Parser + Editable Node Editor (iced 0.12)".into()
     }
 
     fn theme(&self) -> Theme {
@@ -80,7 +107,51 @@ impl Application for Workbench {
                 self.source.perform(action);
                 self.reparse_now();
             }
-            Msg::NodeEditor(evt) => self.node_view.handle(evt),
+            Msg::NodeEditor(evt) => {
+                self.node_view.handle(evt);
+                // Reflect selection into edit panel (but don't start editing yet)
+                if let Some(sel) = self.node_view.selected_path() {
+                    self.edit_path = Some(sel.clone());
+                    // infer edit kind from AST node at path
+                    self.edit_kind = self.infer_edit_kind_at_path(&sel);
+                    // preload edit_text for Var/Int
+                    self.edit_text = self.read_display_value_at_path(&sel);
+                } else {
+                    self.edit_path = None;
+                    self.edit_kind = None;
+                    self.edit_text.clear();
+                }
+            }
+
+            Msg::BeginEdit => {
+                // nothing special; UI already loaded edit_kind/text from selection
+            }
+            Msg::EditTextChanged(s) => {
+                self.edit_text = s;
+            }
+            Msg::ApplyEdit => {
+                if let (Ok(ast), Some(path), Some(kind)) = (
+                    &mut self.ast,
+                    self.edit_path.clone(),
+                    self.edit_kind.clone(),
+                ) {
+                    // clone current AST, mutate, pretty-print, put back into editor & reparse
+                    let mut ast2 = ast.clone();
+                    if apply_edit_at_path(&mut ast2, &path, kind, &self.edit_text) {
+                        let new_src = pretty_print(&ast2);
+                        self.source = text_editor::Content::with_text(&new_src);
+                        self.reparse_now();
+                    } else {
+                        self.logs
+                            .push("Edit could not be applied at this node".into());
+                    }
+                }
+            }
+            Msg::CancelEdit => {
+                self.edit_text = String::new();
+                self.edit_kind = None;
+                // keep selection
+            }
         }
         Command::none()
     }
@@ -107,7 +178,7 @@ impl Application for Workbench {
         .padding(8)
         .width(Length::Fixed(460.0));
 
-        // Right: tokens + node editor
+        // Right: tokens + node editor + edit panel
         let cst_lines = render_tokens(&self.cst);
         let cst_pane = container(
             scrollable(cst_lines.into_iter().fold(column![], |col, l| {
@@ -123,16 +194,20 @@ impl Application for Workbench {
             .width(Length::Fill)
             .height(Length::Fill);
 
+        let edit_panel = self.render_edit_panel();
+
         let right = column![
             text("CST (tokens)").size(18),
             cst_pane,
             horizontal_rule(1),
-            text("AST Node Editor (drag nodes)").size(18),
+            text("AST Node Editor (drag / select, then edit below)").size(18),
             container(node_canvas)
                 .padding(8)
                 .style(theme::Container::Box)
                 .width(Length::Fill)
-                .height(Length::Fill),
+                .height(Length::Fixed(360.0)),
+            horizontal_rule(1),
+            edit_panel,
         ]
         .padding(8)
         .height(Length::Fill);
@@ -140,7 +215,7 @@ impl Application for Workbench {
         container(
             column![
                 row![
-                    text("Tiny Haskell-ish parser + node editor").size(22),
+                    text("Tiny Haskell-ish parser + editable node editor").size(22),
                     Space::with_width(Length::Fill)
                 ]
                 .align_items(Alignment::Center),
@@ -166,7 +241,7 @@ impl Workbench {
         self.cst = tokens;
         self.ast = ast;
 
-        // rebuild node graph
+        // rebuild node graph with paths
         match &self.ast {
             Ok(expr) => {
                 let graph = Graph::from_ast(expr);
@@ -179,10 +254,89 @@ impl Workbench {
                     label: format!("parse error @{}: {}", e.at, e.msg),
                     pos: (40.0, 40.0),
                     size: (240.0, 48.0),
+                    path: vec![],
                 });
                 self.node_view.set_graph(g);
             }
         }
+    }
+
+    fn infer_edit_kind_at_path(&self, path: &[usize]) -> Option<EditKind> {
+        if let Ok(ast) = &self.ast {
+            match get_node_at_path(ast, path) {
+                Some(Expr::Var(_)) => Some(EditKind::RenameVar),
+                Some(Expr::Int(_)) => Some(EditKind::SetInt),
+                Some(Expr::Bin(_, _, _)) => Some(EditKind::ToggleOp),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    }
+
+    fn read_display_value_at_path(&self, path: &[usize]) -> String {
+        if let Ok(ast) = &self.ast {
+            match get_node_at_path(ast, path) {
+                Some(Expr::Var(s)) => s.clone(),
+                Some(Expr::Int(n)) => n.to_string(),
+                Some(Expr::Bin(_, op, _)) => match op {
+                    Op::EqEq => "==".into(),
+                    Op::Minus => "-".into(),
+                },
+                _ => String::new(),
+            }
+        } else {
+            String::new()
+        }
+    }
+
+    fn render_edit_panel(&self) -> Element<Msg> {
+        let mut panel = column![text("Selected node").size(18)].spacing(6);
+
+        match (&self.edit_path, &self.edit_kind) {
+            (Some(_path), Some(EditKind::RenameVar)) => {
+                panel = panel
+                    .push(text("Kind: Var (rename)"))
+                    .push(text_input("identifier", &self.edit_text).on_input(Msg::EditTextChanged))
+                    .push(
+                        row![
+                            iced::widget::button("Apply").on_press(Msg::ApplyEdit),
+                            iced::widget::button("Cancel").on_press(Msg::CancelEdit)
+                        ]
+                        .spacing(8),
+                    );
+            }
+            (Some(_path), Some(EditKind::SetInt)) => {
+                panel = panel
+                    .push(text("Kind: Int (set value)"))
+                    .push(text_input("integer", &self.edit_text).on_input(Msg::EditTextChanged))
+                    .push(
+                        row![
+                            iced::widget::button("Apply").on_press(Msg::ApplyEdit),
+                            iced::widget::button("Cancel").on_press(Msg::CancelEdit)
+                        ]
+                        .spacing(8),
+                    );
+            }
+            (Some(_path), Some(EditKind::ToggleOp)) => {
+                panel = panel.push(text("Kind: Binary Op (toggle == / -)")).push(
+                    row![
+                        iced::widget::button("Toggle & Apply").on_press(Msg::ApplyEdit),
+                        iced::widget::button("Cancel").on_press(Msg::CancelEdit)
+                    ]
+                    .spacing(8),
+                );
+            }
+            _ => {
+                panel = panel.push(text("Select a Var, Int, or Bin node to edit."));
+            }
+        }
+
+        container(panel)
+            .padding(8)
+            .style(theme::Container::Box)
+            .width(Length::Fill)
+            .into()
     }
 }
 
@@ -543,6 +697,168 @@ impl<'a> Parser<'a> {
     }
 }
 
+/* ========================= Pretty-print ========================= */
+
+fn pretty_print(e: &Expr) -> String {
+    fn pp(e: &Expr, ctx_prec: u8) -> String {
+        match e {
+            Expr::Var(s) => s.clone(),
+            Expr::Int(n) => n.to_string(),
+            Expr::Lam(params, body) => {
+                let s = format!("\\{} -> {}", params.join(" "), pp(body, 0));
+                if ctx_prec > 0 {
+                    format!("({s})")
+                } else {
+                    s
+                }
+            }
+            Expr::Let(name, v, b) => {
+                let s = format!("let {} = {} in {}", name, pp(v, 0), pp(b, 0));
+                if ctx_prec > 0 {
+                    format!("({s})")
+                } else {
+                    s
+                }
+            }
+            Expr::If(c, t, e2) => {
+                let s = format!("if {} then {} else {}", pp(c, 0), pp(t, 0), pp(e2, 0));
+                if ctx_prec > 0 {
+                    format!("({s})")
+                } else {
+                    s
+                }
+            }
+            Expr::App(f, a) => {
+                let s = format!("{} {}", pp(f, 70), pp(a, 71)); // app binds tighter than infix
+                if ctx_prec > 70 {
+                    format!("({s})")
+                } else {
+                    s
+                }
+            }
+            Expr::Bin(l, op, r) => {
+                let (prec, sym) = match op {
+                    Op::Minus => (60u8, "-"),
+                    Op::EqEq => (40u8, "=="),
+                };
+                let s = format!("{} {} {}", pp(l, prec), sym, pp(r, prec + 1));
+                if ctx_prec > prec {
+                    format!("({s})")
+                } else {
+                    s
+                }
+            }
+        }
+    }
+    pp(e, 0) + "\n"
+}
+
+/* ========================= AST path utils + edits ========================= */
+
+fn get_node_at_path<'a>(e: &'a Expr, path: &[usize]) -> Option<&'a Expr> {
+    let mut cur = e;
+    for &i in path {
+        cur = match (cur, i) {
+            (Expr::App(l, r), 0) => &*l,
+            (Expr::App(l, r), 1) => &*r,
+            (Expr::Lam(_, b), 0) => &*b,
+            (Expr::Let(_, v, b), 0) => &*v,
+            (Expr::Let(_, v, b), 1) => &*b,
+            (Expr::If(c, t, e2), 0) => &*c,
+            (Expr::If(c, t, e2), 1) => &*t,
+            (Expr::If(c, t, e2), 2) => &*e2,
+            (Expr::Bin(l, _, r), 0) => &*l,
+            (Expr::Bin(l, _, r), 1) => &*r,
+            _ => return None,
+        };
+    }
+    Some(cur)
+}
+
+fn apply_edit_at_path(root: &mut Expr, path: &[usize], kind: EditKind, text: &str) -> bool {
+    // recurse and rebuild in-place
+    fn go(e: &mut Expr, path: &[usize], kind: EditKind, text: &str) -> bool {
+        if path.is_empty() {
+            match (e, kind) {
+                (Expr::Var(ref mut s), EditKind::RenameVar) => {
+                    if text.is_empty() || !is_ident_start(text.chars().next().unwrap_or('_')) {
+                        return false;
+                    }
+                    *s = text.to_string();
+                    true
+                }
+                (Expr::Int(ref mut n), EditKind::SetInt) => {
+                    if let Ok(v) = text.parse::<i64>() {
+                        *n = v;
+                        true
+                    } else {
+                        false
+                    }
+                }
+                (Expr::Bin(_, ref mut op, _), EditKind::ToggleOp) => {
+                    *op = match op {
+                        Op::EqEq => Op::Minus,
+                        Op::Minus => Op::EqEq,
+                    };
+                    true
+                }
+                _ => false,
+            }
+        } else {
+            let i = path[0];
+            match e {
+                Expr::App(l, r) => {
+                    if i == 0 {
+                        go(l, &path[1..], kind, text)
+                    } else if i == 1 {
+                        go(r, &path[1..], kind, text)
+                    } else {
+                        false
+                    }
+                }
+                Expr::Lam(_, b) => {
+                    if i == 0 {
+                        go(b, &path[1..], kind, text)
+                    } else {
+                        false
+                    }
+                }
+                Expr::Let(_, v, b) => {
+                    if i == 0 {
+                        go(v, &path[1..], kind, text)
+                    } else if i == 1 {
+                        go(b, &path[1..], kind, text)
+                    } else {
+                        false
+                    }
+                }
+                Expr::If(c, t, e2) => {
+                    if i == 0 {
+                        go(c, &path[1..], kind, text)
+                    } else if i == 1 {
+                        go(t, &path[1..], kind, text)
+                    } else if i == 2 {
+                        go(e2, &path[1..], kind, text)
+                    } else {
+                        false
+                    }
+                }
+                Expr::Bin(l, _, r) => {
+                    if i == 0 {
+                        go(l, &path[1..], kind, text)
+                    } else if i == 1 {
+                        go(r, &path[1..], kind, text)
+                    } else {
+                        false
+                    }
+                }
+                _ => false,
+            }
+        }
+    }
+    go(root, path, kind, text)
+}
+
 /* ========================= Render helpers ========================= */
 
 fn render_tokens(ts: &[Token]) -> Vec<String> {
@@ -609,7 +925,7 @@ fn map_tok(t: Option<&Token>) -> &'static str {
     }
 }
 
-/* ========================= Graph from AST ========================= */
+/* ========================= Graph from AST (with paths) ========================= */
 
 #[derive(Default, Clone)]
 struct Graph {
@@ -623,6 +939,7 @@ struct VisNode {
     label: String,
     pos: (f32, f32),
     size: (f32, f32),
+    path: Vec<usize>, // <— path from root (used for edits)
 }
 
 impl Graph {
@@ -646,7 +963,8 @@ impl Graph {
                 .map(|i| i.to_string())
                 .collect::<Vec<_>>()
                 .join(".");
-            let mut label = match e {
+
+            let label = match e {
                 Expr::Var(s) => format!("Var {s}"),
                 Expr::Int(n) => format!("Int {n}"),
                 Expr::App(_, _) => "App".into(),
@@ -660,10 +978,11 @@ impl Graph {
             };
             let idx = g.nodes.len();
             g.nodes.push(VisNode {
-                id: id.clone(),
-                label: label.clone(),
+                id,
+                label,
                 pos: (20.0 + depth as f32 * x_step, *y_cursor),
-                size: (140.0, 44.0),
+                size: (160.0, 44.0),
+                path: path.clone(),
             });
 
             match e {
@@ -724,7 +1043,7 @@ impl Graph {
             idx
         }
 
-        let mut path = vec![0];
+        let mut path = vec![];
         add_expr(&mut g, ast, &mut path, 0, &mut y, x_step, y_step);
         g
     }
@@ -785,7 +1104,6 @@ impl NodeEditor {
             NodeEvent::MouseMove(p) => {
                 if st.dragging {
                     if let Some(i) = st.selected {
-                        // avoid double-borrow: copy offsets to locals
                         let (dx, dy) = st.drag_offset;
                         let n = &mut st.graph.nodes[i];
                         n.pos = (p.x - dx, p.y - dy);
@@ -793,6 +1111,12 @@ impl NodeEditor {
                 }
             }
         }
+    }
+
+    fn selected_path(&self) -> Option<Vec<usize>> {
+        let st = self.state.borrow();
+        st.selected
+            .and_then(|i| st.graph.nodes.get(i).map(|n| n.path.clone()))
     }
 }
 
@@ -849,7 +1173,6 @@ impl canvas::Program<Msg> for NodeEditor {
                 Color::from_rgb(0.35, 0.40, 0.48)
             };
 
-            // simple rectangle (no rounded helper in canvas Path)
             let path = Path::rectangle(rect.position(), rect.size());
             frame.fill(&path, Fill::from(bg));
             frame.stroke(
@@ -861,7 +1184,6 @@ impl canvas::Program<Msg> for NodeEditor {
                 },
             );
 
-            // label
             let text_pos = Point::new(n.pos.0 + 10.0, n.pos.1 + 16.0);
             frame.fill_text(canvas::Text {
                 content: n.label.clone(),
@@ -926,3 +1248,5 @@ fn node_rect(n: &VisNode) -> Rectangle {
 fn contains_point(rect: Rectangle, p: Point) -> bool {
     p.x >= rect.x && p.x <= rect.x + rect.width && p.y >= rect.y && p.y <= rect.y + rect.height
 }
+
+/* ========================= END ========================= */
