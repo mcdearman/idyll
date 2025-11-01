@@ -83,44 +83,44 @@ miniml :-
   "|"                            { \p bs -> Token TokenKindBar (makeSpan p bs) }
   "_"                            { \p bs -> Token TokenKindUnderscore (makeSpan p bs) }
 
-  @lowerCaseIdent                { \p bs -> Token (TokenKindLowercaseIdent $ BL.toStrict bs) (makeSpan p bs) }
-  @upperCaseIdent                { \p bs -> Token (TokenKindUppercaseIdent $ BL.toStrict bs) (makeSpan p bs) }
-  @conOpIdent                    { \p bs -> Token (TokenKindConOpIdent $ BL.toStrict bs) (makeSpan p bs) }
-  @opIdent                       { \p bs -> Token (TokenKindOpIdent $ BL.toStrict bs) (makeSpan p bs) }
+  @lowerCaseIdent                { \p bs -> Token TokenKindLowercaseIdent (makeSpan p bs) }
+  @upperCaseIdent                { \p bs -> Token TokenKindUppercaseIdent (makeSpan p bs) }
+  @conOpIdent                    { \p bs -> Token TokenKindConOpIdent (makeSpan p bs) }
+  @opIdent                       { \p bs -> Token TokenKindOpIdent (makeSpan p bs) }
 
-  @decimal                       { \p bs -> Token (makeInt 10 bs) (makeSpan p bs) }
-  @binary                        { \p bs -> Token (makeInt 2 bs) (makeSpan p bs) }
-  @octal                         { \p bs -> Token (makeInt 8 bs) (makeSpan p bs) }
-  @hexadecimal                   { \p bs -> Token (makeInt 16 bs) (makeSpan p bs) }
-  @char                          { \p bs -> Token (TokenKindChar $ bToChar bs) (makeSpan p bs) }
-  @string                        { \p bs -> Token (TokenKindString $ BL.toStrict bs) (makeSpan p bs) }
+  @decimal                       { \p bs -> Token TokenKindInt (makeSpan p bs) }
+  @binary                        { \p bs -> Token TokenKindInt (makeSpan p bs) }
+  @octal                         { \p bs -> Token TokenKindInt (makeSpan p bs) }
+  @hexadecimal                   { \p bs -> Token TokenKindInt (makeSpan p bs) }
+  @char                          { \p bs -> Token TokenKindChar (makeSpan p bs) }
+  @string                        { \p bs -> Token TokenKindString (makeSpan p bs) }
 
   $nonWhite                      { \p bs -> Token TokenKindError (makeSpan p bs) }
 
 {
-makeInt :: Int -> ByteString -> TokenKind
-makeInt 10 bs = TokenKindInt $ parseRadix 10 $ bsToText bs
-makeInt 2 bs = TokenKindInt $ parseRadix 2 $ stripIntPrefix bs
-makeInt 8 bs = TokenKindInt $ parseRadix 8 $ stripIntPrefix bs
-makeInt 16 bs = TokenKindInt $ parseRadix 16 $ stripIntPrefix bs
-makeInt r _ = error $ "Unsupported radix" ++ show r
+-- makeInt :: Int -> ByteString -> TokenKind
+-- makeInt 10 bs = TokenKindInt $ parseRadix 10 $ bsToText bs
+-- makeInt 2 bs = TokenKindInt $ parseRadix 2 $ stripIntPrefix bs
+-- makeInt 8 bs = TokenKindInt $ parseRadix 8 $ stripIntPrefix bs
+-- makeInt 16 bs = TokenKindInt $ parseRadix 16 $ stripIntPrefix bs
+-- makeInt r _ = error $ "Unsupported radix" ++ show r
 
-stripIntPrefix :: ByteString -> Text
-stripIntPrefix bs = T.drop 2 $ bsToText bs
+-- stripIntPrefix :: ByteString -> Text
+-- stripIntPrefix bs = T.drop 2 $ bsToText bs
 
-bsToText :: ByteString -> Text
-bsToText = TE.decodeUtf8 . BL.toStrict
+-- bsToText :: ByteString -> Text
+-- bsToText = TE.decodeUtf8 . BL.toStrict
 
-bToChar :: ByteString -> Char
-bToChar = T.head . stripCharQuotes
-  where
-    stripCharQuotes :: ByteString -> Text
-    stripCharQuotes = fromMaybe (error "Invalid char literal") . stripPrefix "'" . T.init . bsToText
+-- bToChar :: ByteString -> Char
+-- bToChar = T.head . stripCharQuotes
+--   where
+--     stripCharQuotes :: ByteString -> Text
+--     stripCharQuotes = fromMaybe (error "Invalid char literal") . stripPrefix "'" . T.init . bsToText
 
-parseRadix :: (Integral a) => a -> Text -> a
-parseRadix r = T.foldl' step 0
-  where
-    step a c = a * r + (fromIntegral $ Char.digitToInt c)
+-- parseRadix :: (Integral a) => a -> Text -> a
+-- parseRadix r = T.foldl' step 0
+--   where
+--     step a c = a * r + (fromIntegral $ Char.digitToInt c)
 
 makeSpan :: AlexPosn -> ByteString -> Span
 makeSpan (AlexPn start _ _) bs = Span start end
