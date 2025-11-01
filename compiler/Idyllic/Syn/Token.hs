@@ -9,7 +9,7 @@ module Idyllic.Syn.Token
 where
 
 import Data.ByteString (ByteString)
-import Idyllic.Utils.Span (Span)
+import Idyllic.Utils.Span (Span, slice)
 
 data Token = Token {tokenKind :: TokenKind, tokenSpan :: !Span}
   deriving (Show, Eq, Ord)
@@ -20,13 +20,13 @@ data TokenKind
   | TokenKindNewline
   | TokenKindWhitespace
   | TokenKindComment
-  | TokenKindUppercaseIdent ByteString
-  | TokenKindLowercaseIdent ByteString
-  | TokenKindOpIdent ByteString
-  | TokenKindConOpIdent ByteString
-  | TokenKindInt Integer
-  | TokenKindString ByteString
-  | TokenKindChar Char
+  | TokenKindUppercaseIdent
+  | TokenKindLowercaseIdent
+  | TokenKindOpIdent
+  | TokenKindConOpIdent
+  | TokenKindInt
+  | TokenKindString
+  | TokenKindChar
   | TokenKindLParen
   | TokenKindRParen
   | TokenKindLBrace
@@ -63,9 +63,12 @@ isSpace = go . tokenKind
     go TokenKindWhitespace = True
     go _ = False
 
-isKeyword :: Token -> Bool
-isKeyword t = case tokenKind t of
-  TokenKindLowercaseIdent txt -> go txt
+tokenText :: Token -> ByteString -> ByteString
+tokenText t = slice $ tokenSpan t
+
+isKeyword :: Token -> ByteString -> Bool
+isKeyword t src = case tokenKind t of
+  TokenKindLowercaseIdent -> go $ tokenText t src
   _ -> False
   where
     go "module" = True
@@ -86,9 +89,9 @@ isKeyword t = case tokenKind t of
     go "do" = True
     go _ = False
 
-isLayoutKeyword :: Token -> Bool
-isLayoutKeyword t = case tokenKind t of
-  TokenKindLowercaseIdent txt -> go txt
+isLayoutKeyword :: Token -> ByteString -> Bool
+isLayoutKeyword t src = case tokenKind t of
+  TokenKindLowercaseIdent -> go $ tokenText t src
   _ -> False
   where
     go "let" = True
