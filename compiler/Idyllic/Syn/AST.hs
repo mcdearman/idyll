@@ -12,13 +12,13 @@ data SynNode a = SynNode
 type Expr = SynNode ExprKind
 
 data ExprKind
-  = ExprLit Lit
-  | ExprVar Ident
-  | ExprLet Bind Expr
-  | ExprIf Expr Expr Expr
-  | ExprLam [Ident] Expr
-  | ExprApp Expr [Expr]
-  | ExprInfix Expr Ident Expr
+  = Lit Lit
+  | Var Ident
+  | Let Bind Expr
+  | If Expr Expr Expr
+  | Lam [Ident] Expr
+  | App Expr [Expr]
+  | Infix Expr Ident Expr
   | Neg Expr
   deriving (Show, Eq, Ord)
 

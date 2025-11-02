@@ -17,13 +17,13 @@ parseTerm = runParser (sc *> exprParser <* eof) ""
 exprParser :: Parser Expr
 exprParser = makeExprParser (app <|> atom) operatorTable
   where
-    lit' = ExprLit <$> lit
-    var = ExprVar <$> ident
+    lit' = Lit <$> lit
+    var = Var <$> ident
     atom = withSpan $ choice [lit', let', if', var, lam, synNodeKind <$> parens exprParser]
-    let' = try $ ExprLet <$> (symbol "let" *> bind) <*> (symbol "in" *> exprParser)
-    if' = try $ ExprIf <$> (symbol "if" *> exprParser) <*> (symbol "then" *> exprParser) <*> (symbol "else" *> exprParser)
-    lam = ExprLam <$> (symbol "\\" *> some ident) <*> (symbol "->" *> exprParser)
-    app = try $ withSpan $ ExprApp <$> atom <*> some atom
+    let' = try $ Let <$> (symbol "let" *> bind) <*> (symbol "in" *> exprParser)
+    if' = try $ If <$> (symbol "if" *> exprParser) <*> (symbol "then" *> exprParser) <*> (symbol "else" *> exprParser)
+    lam = Lam <$> (symbol "\\" *> some ident) <*> (symbol "->" *> exprParser)
+    app = try $ withSpan $ App <$> atom <*> some atom
 
 lit :: Parser Lit
 lit = choice [LitInt . fromInteger <$> lexeme L.decimal, boolLit, stringLit]
@@ -40,12 +40,12 @@ bind = funBind <|> nameBind
 operatorTable :: [[Operator Parser Expr]]
 operatorTable =
   [ [prefix "-" (\s e -> SynNode (Neg e) s)],
-    [ binary "*" (\s l r -> SynNode (ExprInfix l (SynNode "*" s) r) (synNodeSpan l <> synNodeSpan r)),
-      binary "/" (\s l r -> SynNode (ExprInfix l (SynNode "/" s) r) (synNodeSpan l <> synNodeSpan r)),
-      binary "%" (\s l r -> SynNode (ExprInfix l (SynNode "%" s) r) (synNodeSpan l <> synNodeSpan r))
+    [ binary "*" (\s l r -> SynNode (Infix l (SynNode "*" s) r) (synNodeSpan l <> synNodeSpan r)),
+      binary "/" (\s l r -> SynNode (Infix l (SynNode "/" s) r) (synNodeSpan l <> synNodeSpan r)),
+      binary "%" (\s l r -> SynNode (Infix l (SynNode "%" s) r) (synNodeSpan l <> synNodeSpan r))
     ],
-    [ binary "+" (\s l r -> SynNode (ExprInfix l (SynNode "+" s) r) (synNodeSpan l <> synNodeSpan r)),
-      binary "-" (\s l r -> SynNode (ExprInfix l (SynNode "-" s) r) (synNodeSpan l <> synNodeSpan r))
+    [ binary "+" (\s l r -> SynNode (Infix l (SynNode "+" s) r) (synNodeSpan l <> synNodeSpan r)),
+      binary "-" (\s l r -> SynNode (Infix l (SynNode "-" s) r) (synNodeSpan l <> synNodeSpan r))
     ]
   ]
 
