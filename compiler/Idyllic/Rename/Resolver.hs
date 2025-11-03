@@ -63,22 +63,22 @@ renameExpr :: AST.Expr -> Rename Expr
 renameExpr expr = go $ synNodeKind expr
   where
     go :: AST.ExprKind -> Rename Expr
-    go (AST.ExprLit (AST.LitInt n)) = do
+    go (AST.Lit (AST.LitInt n)) = do
       nodeId <- freshNodeId
       pure $ HirNode nodeId (ExprLit (LitInt n)) (synNodeSpan expr)
-    go (AST.ExprLit (AST.LitBool b)) = do
+    go (AST.Lit (AST.LitBool b)) = do
       nodeId <- freshNodeId
       pure $ HirNode nodeId (ExprLit (LitBool b)) (synNodeSpan expr)
-    go (AST.ExprLit (AST.LitString s)) = do
+    go (AST.Lit (AST.LitString s)) = do
       nodeId <- freshNodeId
       pure $ HirNode nodeId (ExprLit (LitString s)) (synNodeSpan expr)
-    go (AST.ExprVar x) = do
+    go (AST.Var x) = do
       nodeId <- freshNodeId
       var <- find $ synNodeKind x
       let sym = Symbol <$> var <*> pure (synNodeSpan x)
       let m = maybe ExprError ExprVar sym
       pure $ HirNode nodeId m (synNodeSpan expr)
-    go (AST.ExprLet bind body) = do
+    go (AST.Let bind body) = do
       nodeId <- freshNodeId
       (bind', body') <- renameBind bind body
       pure $ HirNode nodeId (ExprLet bind' body') (synNodeSpan expr)
@@ -95,23 +95,23 @@ renameExpr expr = go $ synNodeKind expr
           e' <- renameExpr e
           body' <- renameExpr b
           pure (BindFun f' args' e', body')
-    go (AST.ExprIf cond thenBr elseBr) = do
+    go (AST.If cond thenBr elseBr) = do
       nodeId <- freshNodeId
       cond' <- renameExpr cond
       thenBr' <- renameExpr thenBr
       elseBr' <- renameExpr elseBr
       pure $ HirNode nodeId (ExprIf cond' thenBr' elseBr') (synNodeSpan expr)
-    go (AST.ExprLam params body) = do
+    go (AST.Lam params body) = do
       nodeId <- freshNodeId
       params' <- mapM (\p -> Symbol <$> freshName (synNodeKind p) <*> pure (synNodeSpan p)) params
       body' <- renameExpr body
       pure $ HirNode nodeId (ExprLam params' body') (synNodeSpan expr)
-    go (AST.ExprApp f args) = do
+    go (AST.App f args) = do
       nodeId <- freshNodeId
       f' <- renameExpr f
       args' <- mapM renameExpr args
       pure $ HirNode nodeId (ExprApp f' args') (synNodeSpan expr)
-    go (AST.ExprInfix l op r) = do
+    go (AST.Infix l op r) = do
       nodeId <- freshNodeId
       l' <- renameExpr l
       opId <- freshNodeId
