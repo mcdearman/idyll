@@ -45,7 +45,7 @@ record Person {
 }
 
 -- or with indentation
-record Person
+record Person where
   name : String
   age : Int
 
