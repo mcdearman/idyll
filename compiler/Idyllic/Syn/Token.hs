@@ -73,6 +73,7 @@ isKeyword t src = case tokenKind t of
   where
     go "module" = True
     go "import" = True
+    go "mutual" = True
     go "let" = True
     go "in" = True
     go "where" = True
