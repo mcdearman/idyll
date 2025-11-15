@@ -8,49 +8,15 @@ import qualified Std.Collections.Array as Array
 
 @pub
 @derive(Debug, PartialEq, Eq)
-record Vector a = { 
-  size : Int, 
-  tree : Tree a 
-}
+data Tree a
+  = Balanced !(Array (Tree a))
+  | Unbalanced !(Array (Tree a)) !(PrimArray Int)
+  | Leaf !(Array a)
+
+Shift = Int
 
 @pub
 @derive(Debug, PartialEq, Eq)
-data Tree a
-  = Leaf (Array a)
-  | Node (Array (Tree a)) Int
-  | Empty
-
-@inline
-empty : Vector a = Vector { size = 0, tree = Empty }
-  
-@inline
-isEmpty (v : Vector a) : Bool = v.size == 0
-  
-@inline
-size (v : Vector a) : Int = v.size
-  
-@inline(always)
-push : Vector a -> a -> Vector a
-push v x = go v.tree
-  where 
-    go (Empty) = Vector { size = 1, tree = Leaf [x] }
-    go (Leaf xs) =
-      | Array.length xs < 32 = Vector { size = v.size + 1, tree = Leaf (xs ++ [x]) }
-      | otherwise = let newTree = Node [Leaf xs] (Array.length xs) in
-          Vector { size = v.size + 1, tree = newTree }
-    go (Node ts n)
-      | n < 32 = let newTree = Node (ts ++ [Leaf [x]]) n in 
-          Vector { size = v.size + 1, tree = newTree }
-      | otherwise = let newTree = Node [Leaf [x]] (Array.length ts) in
-          Vector { size = v.size + 1, tree = newTree }
-  
-@inline
-def pop (v : Vector a) : Option (a, Vector a) =
-  match v.tree with
-    Empty -> None
-    Leaf [] -> None
-    Leaf (x::xs) -> 
-      Some (x, Vector { size = v.size - 1, tree = Leaf (Array.tail xs) })
-    Node ts 0 -> None
-    Node ts n -> let newTree = Node (Array.tail ts) (n - 1) in
-      Some (Array.head ts, Vector { size = v.size - 1, tree = newTree })
+data Vector a
+  = Empty 
+  | Root !Int !Shift !(Tree a)
