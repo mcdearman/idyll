@@ -25,6 +25,8 @@ data ExprKind
   | Hole (Maybe Ident) -- _ or ?name for user holes
   deriving (Show, Eq, Ord)
 
+data Universe = UType | UProp | USort Int deriving (Show, Eq, Ord)
+
 data Binder = Binder
   { binderIdent :: Ident,
     binderType :: Expr,
