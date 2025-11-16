@@ -8,7 +8,6 @@ data SynNode a = SynNode
     synNodeSpan :: !Span
   }
   deriving (Show, Eq, Ord)
-
 type Expr = SynNode ExprKind
 
 data ExprKind
@@ -20,6 +19,17 @@ data ExprKind
   | App Expr [Expr]
   | Infix Expr Ident Expr
   | Neg Expr
+  | Sort Universe -- Type, Prop, Sort u
+  | Pi [Binder] Expr -- (x : A) -> B, {x : A} -> B, A -> B
+  | Ann Expr Expr -- e : A  (type annotation)
+  | Hole (Maybe Ident) -- _ or ?name for user holes
+  deriving (Show, Eq, Ord)
+
+data Binder = Binder
+  { binderIdent :: Ident,
+    binderType :: Expr,
+    binderImplicit :: Bool
+  }
   deriving (Show, Eq, Ord)
 
 data Bind = BindName Ident Expr | BindFun Ident [Ident] Expr deriving (Show, Eq, Ord)
