@@ -8,6 +8,16 @@ data SynNode a = SynNode
     synNodeSpan :: !Span
   }
   deriving (Show, Eq, Ord)
+
+type Prog = [Decl]
+
+data Decl = Decl
+  { declName :: Ident,
+    declType :: Maybe Expr,
+    declBody :: Expr
+  }
+  deriving (Show, Eq, Ord)
+
 type Expr = SynNode ExprKind
 
 data ExprKind
