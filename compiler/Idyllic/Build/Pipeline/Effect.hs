@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Idyllic.Build.Effect where
+module Idyllic.Build.Pipeline.Effect where
 
 import Control.Concurrent.STM (TVar, newTVarIO)
 import Control.Monad.Reader (ReaderT)

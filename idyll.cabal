@@ -28,8 +28,8 @@ executable idyllic
   other-modules:
     Idyllic.Build
     Idyllic.Build.Driver
-    Idyllic.Build.Effect
     Idyllic.Build.Pipeline
+    Idyllic.Build.Pipeline.Effect
     Idyllic.Core
     Idyllic.Rename.HIR
     Idyllic.Rename.Resolver
