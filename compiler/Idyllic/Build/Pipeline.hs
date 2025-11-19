@@ -1,22 +1,23 @@
-module Idyllic.Build.Pipeline (runPipeline) where
+module Idyllic.Build.Pipeline (runPipelineIO) where
 
-import Control.Concurrent.STM (TVar, newTVarIO)
-import Control.Monad.Reader (MonadReader (ask), ReaderT)
-import Control.Monad.State
+import Control.Monad.Reader (MonadReader (ask), ReaderT (runReaderT))
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as BL
-import Data.Text (Text)
-import Data.Text.Encoding (encodeUtf8)
 import Debug.Trace (trace)
-import Error.Diagnose (Diagnostic)
-import Idyllic.Build.Pipeline.Effect (InputMode, PipelineM)
+import Idyllic.Build.Pipeline.Effect
 import Idyllic.Syn.Lexer (tokenize)
-import Idyllic.Utils.LineIndex (LineIndex, buildLineIndex)
-import Text.Pretty.Simple (pPrint, pShow)
+import Text.Pretty.Simple
 
-runPipeline :: InputMode -> ByteString -> PipelineM ()
-runPipeline mode src = do
+pipelineMain :: Pipeline ()
+pipelineMain = do
+  env <- ask
+  let src = pipelineSrc env
   let ts = tokenize (BL.fromStrict src)
   trace "tokens" $ pPrint ts
   -- lts <- runLayout (filter (not . tokenIsSpace) ts)
   pure ()
+
+runPipelineIO :: Bool -> InputMode -> ByteString -> IO ()
+runPipelineIO debug mode src = do
+  env <- mkPipelineEnv debug mode src
+  runReaderT pipelineMain env

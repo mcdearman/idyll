@@ -1,12 +1,16 @@
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Idyllic.Build.Driver (runDefaultDriver, runDriver) where
 
-import Control.Monad.Reader (MonadIO, MonadReader, ReaderT (runReaderT))
-import Data.ByteString (ByteString)
-import Idyllic.Build.Pipeline (runPipeline)
-import Idyllic.Build.Pipeline.Effect (PipelineEnv)
-import System.Console.Haskeline (InputT, Settings (..), defaultSettings, getInputLine, runInputT)
+import Control.Monad.Reader (MonadIO (liftIO), MonadReader, ReaderT (runReaderT), asks)
+import qualified Data.ByteString as B
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as TE
+import Idyllic.Build.Pipeline (runPipelineIO)
+import Idyllic.Build.Pipeline.Effect
+import Options.Applicative
+import System.Console.Haskeline
 
 newtype Driver a = Driver {unDriver :: ReaderT DriverEnv IO a}
   deriving (Functor, Applicative, Monad, MonadIO, MonadReader DriverEnv)
@@ -18,8 +22,10 @@ data DriverEnv = DriverEnv
   }
 
 data CliOptions = CliOptions
-  { cliVerbose :: Bool
+  { optMode :: DriverMode,
+    optDebug :: Bool
   }
+  deriving (Show, Eq)
 
 data SearchPaths = SearchPaths
   { spSourcePaths :: [FilePath],
@@ -28,29 +34,97 @@ data SearchPaths = SearchPaths
 
 data DriverMode
   = DriverModeFile FilePath
-  | DriverModeREPL
+  | DriverModeInteractive
   deriving (Show, Eq)
+
+-- | Parser for Mode: either a FILE argument, or no argument = REPL.
+modeParser :: Parser DriverMode
+modeParser =
+  fmap toMode . optional $
+    strArgument
+      ( metavar "FILE"
+          <> help "Source file to compile/run (omit to start REPL)"
+      )
+  where
+    toMode :: Maybe FilePath -> DriverMode
+    toMode (Just fp) = DriverModeFile fp
+    toMode Nothing = DriverModeInteractive
+
+-- | Parser for the whole Options record.
+optionsParser :: Parser CliOptions
+optionsParser = do
+  optMode <- modeParser
+  optDebug <-
+    switch
+      ( long "debug"
+          <> short 'd'
+          <> help "Enable debug logging"
+      )
+  pure CliOptions {..}
+
+optionsInfo :: ParserInfo CliOptions
+optionsInfo =
+  info
+    (optionsParser <**> helper)
+    ( fullDesc
+        <> progDesc "Welcome to the Idyll REPL!"
+        <> header "Idyll"
+    )
+
+parseOptions :: IO CliOptions
+parseOptions = execParser optionsInfo
 
 runDefaultDriver :: IO ()
 runDefaultDriver = do
-  undefined
+  opts <- parseOptions
+  let env =
+        DriverEnv
+          { driverArgs = opts,
+            driverPaths = SearchPaths [] [],
+            driverMode = optMode opts
+          }
+  runDriver env $ case driverMode env of
+    DriverModeFile fp -> do
+      src <- liftIO $ B.readFile fp
+      debug <- asks (optDebug . driverArgs)
+      liftIO $ runPipelineIO debug (InputModeFile $ T.pack fp) src
+    DriverModeInteractive -> do
+      liftIO $ putStrLn "Welcome to the Idyll REPL!"
+      env' <- liftIO $ mkPipelineEnv True InputModeInteractive B.empty
+      liftIO $ runInputT settings (repl env')
 
 runDriver :: DriverEnv -> Driver a -> IO a
 runDriver env (Driver m) = runReaderT m env
 
--- runDriver :: IO ()
--- runDriver = do
---   env <- defaultPipelineEnv ""
---   runInputT settings (repl env)
+runOneInput :: PipelineEnv -> String -> IO ()
+runOneInput env inputStr = do
+  let txt = T.pack inputStr
+      bs = TE.encodeUtf8 txt
+      debug = pipelineDebug env
+  runPipelineIO debug InputModeInteractive bs
 
 repl :: PipelineEnv -> InputT IO ()
-repl env = do
-  -- putStrLn "Welcome to the Idyll REPL!"
-  minput <- getMultilineInput ""
-  case minput of
-    Nothing -> return ()
-    Just input -> do
-      repl env
+repl env = loop
+  where
+    loop :: InputT IO ()
+    loop = do
+      minput <- getMultilineInput "idyll> "
+      case minput of
+        -- EOF (Ctrl+D)
+        Nothing -> do
+          outputStrLn "Exiting..."
+          return ()
+        Just input
+          | input == ":quit" || input == ":q" -> do
+              outputStrLn "Exiting..."
+              return ()
+          | all (`elem` (" \t\n" :: String)) input -> do
+              -- empty / whitespace-only: just prompt again
+              loop
+          | otherwise -> do
+              -- Run this input through the pipeline
+              liftIO $ runOneInput env input
+              loop
 
 settings :: Settings IO
 settings = defaultSettings {historyFile = Just ".repl_history"}

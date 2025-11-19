@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Idyllic.Build.Pipeline.Effect where
+module Idyllic.Build.Pipeline.Effect (InputMode (..), PipelineEnv (..), mkPipelineEnv, defaultPipelineEnv, Pipeline) where
 
 import Control.Concurrent.STM (TVar, newTVarIO)
 import Control.Monad.Reader (ReaderT)
@@ -17,15 +17,24 @@ data InputMode
 
 data PipelineEnv = PipelineEnv
   { pipelineSrc :: ByteString,
-    pipelineFlags :: [Text],
+    pipelineDebug :: Bool,
     pipelineMode :: InputMode,
     pipelineLineIndex :: LineIndex,
     pipelineErrors :: TVar [Diagnostic Text]
   }
   deriving (Eq)
 
-class HasDiagnostic e where
-  toDiagnostic :: e -> Diagnostic Text
+mkPipelineEnv :: Bool -> InputMode -> ByteString -> IO PipelineEnv
+mkPipelineEnv debug mode src = do
+  errVar <- newTVarIO []
+  pure
+    PipelineEnv
+      { pipelineSrc = src,
+        pipelineDebug = debug,
+        pipelineMode = mode,
+        pipelineLineIndex = buildLineIndex src,
+        pipelineErrors = errVar
+      }
 
 defaultPipelineEnv :: ByteString -> IO PipelineEnv
 defaultPipelineEnv src = do
@@ -33,10 +42,10 @@ defaultPipelineEnv src = do
   pure
     PipelineEnv
       { pipelineSrc = src,
-        pipelineFlags = [],
+        pipelineDebug = True,
         pipelineMode = InputModeInteractive,
         pipelineLineIndex = buildLineIndex src,
         pipelineErrors = errVar
       }
 
-type PipelineM = ReaderT PipelineEnv IO
+type Pipeline = ReaderT PipelineEnv IO
