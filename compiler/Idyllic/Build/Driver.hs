@@ -113,12 +113,12 @@ repl env = loop
         -- EOF (Ctrl+D)
         Nothing -> do
           outputStrLn "Exiting..."
-          return ()
+          pure ()
         Just input
           | input == ":quit" || input == ":q" -> do
               outputStrLn "Exiting..."
-              return ()
-          | all (`elem` (" \t\n" :: String)) input -> do
+              pure ()
+          | all (`elem` (" \t\n\r" :: String)) input -> do
               -- empty / whitespace-only: just prompt again
               loop
           | otherwise -> do
