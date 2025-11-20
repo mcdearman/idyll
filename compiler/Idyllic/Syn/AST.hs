@@ -30,10 +30,63 @@ data Module = Module
 
 type SDecl = SynNode Decl
 
-data Decl = Decl
-  { declName :: Ident,
-    declType :: Maybe STerm,
-    declBody :: STerm
+data Decl
+  = DeclClassDecl SWhereDecl
+  | DeclClassDef SClassDef
+  | DeclInstanceDecl SInstancDecl
+  | DeclRecordDef SRecordDef
+  deriving (Show, Eq, Ord)
+
+type SRecordDef = SynNode RecordDef
+
+data RecordDef = RecordDef
+  { recordName :: !Ident,
+    recordTypeParams :: [Ident],
+    recordFields :: [(Ident, STerm)]
+  }
+  deriving (Show, Eq, Ord)
+
+type SClassDef = SynNode ClassDef
+
+data ClassDef
+  = ClassDef
+  { className :: !Ident,
+    classSuperclasses :: [Ident],
+    classTypeParams :: [Ident],
+    classDecls :: [SClassDecl]
+  }
+  deriving (Show, Eq, Ord)
+
+type SClassDecl = SynNode ClassDecl
+
+data ClassDecl
+  = ClassDeclSig SSig
+  | ClassDeclBind FunBind
+  deriving (Show, Eq, Ord)
+
+type SWhereDecl = SynNode WhereDecl
+
+data WhereDecl = WhereDecl
+  { whereDeclSig :: SSig,
+    whereDeclBind :: SBind
+  }
+  deriving (Show, Eq, Ord)
+
+type SInstancDecl = SynNode InstanceDecl
+
+data InstanceDecl = InstanceDecl
+  { instanceClass :: !Ident,
+    instanceTypeParams :: [Ident],
+    instanceAnn :: STerm,
+    instanceDecls :: [SWhereDecl]
+  }
+  deriving (Show, Eq, Ord)
+
+type SSig = SynNode Sig
+
+data Sig = Sig
+  { sigNames :: [Ident],
+    sigAnn :: STerm
   }
   deriving (Show, Eq, Ord)
 
@@ -46,6 +99,7 @@ data Term
   | If STerm STerm STerm
   | Lam [Ident] STerm
   | App STerm [STerm]
+  | Match
   | Infix STerm Ident STerm
   | Neg STerm
   | Sort Universe -- Type, Prop, Sort u
@@ -63,12 +117,60 @@ data Binder = Binder
   }
   deriving (Show, Eq, Ord)
 
+type SBind = SynNode Bind
+
 data Bind = BindName Ident STerm | BindFun Ident [Ident] STerm deriving (Show, Eq, Ord)
+
+data Rhs = RhsTerm STerm | RhsGuard [SGuard]
+  deriving (Show, Eq, Ord)
+
+data PatBind = PatBind
+  { patBindPat :: SPat,
+    patBindRhs :: Rhs,
+    patBindWhereDecls :: [SWhereDecl]
+  }
+  deriving (Show, Eq, Ord)
+
+data FunBind = FunBind
+  { funName :: !Ident,
+    funAlts :: [SAlt],
+    funWhereDecls :: [SWhereDecl]
+  }
+  deriving (Show, Eq, Ord)
+
+type SAlt = SynNode Alt
+
+data Alt = Alt
+  { altPat :: SPat,
+    altBody :: STerm
+  }
+  deriving (Show, Eq, Ord)
+
+type SGuard = SynNode Guard
+
+data Guard = Guard
+  { guardPat :: SPat,
+    guardBody :: STerm
+  }
+  deriving (Show, Eq, Ord)
+
+type SPat = SynNode Pat
+
+data Pat
+  = PatWildcard
+  | PatLit Lit
+  | PatIdent Ident
+  | PatCons Ident [SPat]
+  | PatAs Ident SPat
+  | PatList [SPat]
+  | PatTuple [SPat]
+  | PatUnit
+  deriving (Show, Eq, Ord)
 
 type Ident = SynNode Text
 
 data Lit
   = LitInt Int
-  | LitBool Bool
   | LitString Text
+  | LitChar Char
   deriving (Show, Eq, Ord)
