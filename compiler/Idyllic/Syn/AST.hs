@@ -95,9 +95,9 @@ type STerm = SynNode Term
 data Term
   = Lit Lit
   | Var Ident
-  | Let Bind STerm
+  | Let SBind STerm
   | If STerm STerm STerm
-  | Lam [Ident] STerm
+  | Lam [SPat] STerm
   | App STerm [STerm]
   | Match
   | Infix STerm Ident STerm
@@ -119,14 +119,17 @@ data Binder = Binder
 
 type SBind = SynNode Bind
 
-data Bind = BindName Ident STerm | BindFun Ident [Ident] STerm deriving (Show, Eq, Ord)
+data Bind
+  = BindPat PatBind
+  | BindFun FunBind
+  deriving (Show, Eq, Ord)
 
 data Rhs = RhsTerm STerm | RhsGuard [SGuard]
   deriving (Show, Eq, Ord)
 
 data PatBind = PatBind
   { patBindPat :: SPat,
-    patBindRhs :: Rhs,
+    patBindBody :: Rhs,
     patBindWhereDecls :: [SWhereDecl]
   }
   deriving (Show, Eq, Ord)
@@ -142,7 +145,7 @@ type SAlt = SynNode Alt
 
 data Alt = Alt
   { altPat :: SPat,
-    altBody :: STerm
+    altBody :: Rhs
   }
   deriving (Show, Eq, Ord)
 
