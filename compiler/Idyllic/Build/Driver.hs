@@ -7,6 +7,7 @@ import Control.Monad.Reader (MonadIO (liftIO), MonadReader, ReaderT (runReaderT)
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
+import Debug.Trace (trace)
 import Idyllic.Build.Pipeline (runPipelineIO)
 import Idyllic.Build.Pipeline.Effect
 import Options.Applicative
@@ -108,7 +109,7 @@ repl env = loop
   where
     loop :: InputT IO ()
     loop = do
-      minput <- getMultilineInput "idyll> "
+      minput <- getMultilineInput ""
       case minput of
         -- EOF (Ctrl+D)
         Nothing -> do
