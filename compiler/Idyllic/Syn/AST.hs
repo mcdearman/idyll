@@ -1,17 +1,4 @@
-module Idyllic.Syn.AST
-  ( SynNode (..),
-    Module (..),
-    SDecl,
-    Decl (..),
-    STerm,
-    Term (..),
-    Universe (..),
-    Binder (..),
-    Bind (..),
-    Ident,
-    Lit (..),
-  )
-where
+module Idyllic.Syn.AST where
 
 import Data.Text (Text)
 import Idyllic.Utils.Span (Span)
@@ -99,21 +86,21 @@ data Term
   | If STerm STerm STerm
   | Lam [SPat] STerm
   | App STerm [STerm]
-  | Match
+  | Match STerm [SAlt]
   | Infix STerm Ident STerm
   | Neg STerm
   | Sort Universe -- Type, Prop, Sort u
-  | Pi [Binder] STerm -- (x : A) -> B, {x : A} -> B, A -> B
+  | Pi [Param] STerm -- (x : A) -> B, {x : A} -> B, A -> B
   | Ann STerm STerm -- e : A  (type annotation)
   | Hole (Maybe Ident) -- _ or ?name for user holes
   deriving (Show, Eq, Ord)
 
 data Universe = UType | UProp | USort Int deriving (Show, Eq, Ord)
 
-data Binder = Binder
-  { binderIdent :: Ident,
-    binderType :: STerm,
-    binderImplicit :: Bool
+data Param = Param
+  { paramIdent :: Ident,
+    paramType :: STerm,
+    paramImplicit :: Bool
   }
   deriving (Show, Eq, Ord)
 
