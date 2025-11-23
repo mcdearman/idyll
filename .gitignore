@@ -3,7 +3,15 @@ dist-*
 .idea
 .DS_Store
 .repl_history
+<<<<<<< HEAD
 target
 .repos
 *.OLD
 line-count.sh
+=======
+*.log
+src-old
+dist-*
+flamegraph.svg
+.repos
+>>>>>>> 913795d (update)
