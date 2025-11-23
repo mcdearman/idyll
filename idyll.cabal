@@ -42,7 +42,6 @@ executable idyllic
     Idyllic.Syn.Token
     Idyllic.Syn.TokenTree
     Idyllic.Typing.Infer
-    Idyllic.Typing.Kind
     Idyllic.Typing.Ty
     Idyllic.Utils.LineIndex
     Idyllic.Utils.Span
@@ -70,11 +69,11 @@ executable idyllic
     diagnose,
     hashable,
     haskeline,
-    optparse-applicative,
     intern,
     megaparsec,
     mtl,
     optics,
+    optparse-applicative,
     parser-combinators,
     pretty-simple,
     prettyprinter,
