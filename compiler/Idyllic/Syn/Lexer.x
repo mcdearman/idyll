@@ -49,7 +49,7 @@ $escSimple = [0\'\"\\nrtabfv]
 @octal       = "0o" $octdig+
 @hexadecimal = "0x" $hexdig+
 @decimal     = ($nonzero $digit* | "0")
--- @int         = @binary | @octal | @hexadecimal | @decimal
+@int         = @binary | @octal | @hexadecimal | @decimal
 
 @esc     = \\ ( $escSimple | @escByte | @escUni4 | @escUni8 )
 @char    = \' ( $bareScalar | @esc ) \'
@@ -88,40 +88,13 @@ miniml :-
   @conOpIdent                    { \p bs -> Token TokenKindConOpIdent (makeSpan p bs) }
   @opIdent                       { \p bs -> Token TokenKindOpIdent (makeSpan p bs) }
 
-  @decimal                       { \p bs -> Token TokenKindInt (makeSpan p bs) }
-  @binary                        { \p bs -> Token TokenKindInt (makeSpan p bs) }
-  @octal                         { \p bs -> Token TokenKindInt (makeSpan p bs) }
-  @hexadecimal                   { \p bs -> Token TokenKindInt (makeSpan p bs) }
+  @int                           { \p bs -> Token TokenKindInt (makeSpan p bs) }
   @char                          { \p bs -> Token TokenKindChar (makeSpan p bs) }
   @string                        { \p bs -> Token TokenKindString (makeSpan p bs) }
 
   $nonWhite                      { \p bs -> Token TokenKindError (makeSpan p bs) }
 
 {
--- makeInt :: Int -> ByteString -> TokenKind
--- makeInt 10 bs = TokenKindInt $ parseRadix 10 $ bsToText bs
--- makeInt 2 bs = TokenKindInt $ parseRadix 2 $ stripIntPrefix bs
--- makeInt 8 bs = TokenKindInt $ parseRadix 8 $ stripIntPrefix bs
--- makeInt 16 bs = TokenKindInt $ parseRadix 16 $ stripIntPrefix bs
--- makeInt r _ = error $ "Unsupported radix" ++ show r
-
--- stripIntPrefix :: ByteString -> Text
--- stripIntPrefix bs = T.drop 2 $ bsToText bs
-
--- bsToText :: ByteString -> Text
--- bsToText = TE.decodeUtf8 . BL.toStrict
-
--- bToChar :: ByteString -> Char
--- bToChar = T.head . stripCharQuotes
---   where
---     stripCharQuotes :: ByteString -> Text
---     stripCharQuotes = fromMaybe (error "Invalid char literal") . stripPrefix "'" . T.init . bsToText
-
--- parseRadix :: (Integral a) => a -> Text -> a
--- parseRadix r = T.foldl' step 0
---   where
---     step a c = a * r + (fromIntegral $ Char.digitToInt c)
-
 makeSpan :: AlexPosn -> ByteString -> Span
 makeSpan (AlexPn start _ _) bs = Span start end
   where 
