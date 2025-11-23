@@ -23,6 +23,13 @@ map _ Nil = Nil
 map f (x :: xs) = f x :: map f xs
 
 @pub
+filter : (p : a -> Bool) -> (v : Vec n a) -> Vec (count p v) a
+filter _ Nil = Nil
+filter p (x :: xs)
+  | p x = x :: filter p xs
+  | otherwise = filter p xs
+
+@pub
 append : Vec n a -> Vec m a -> Vec (n + m) a
 append Nil ys = ys
 append (x :: xs) ys = x :: append xs ys
