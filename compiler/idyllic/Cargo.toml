@@ -1,10 +1,10 @@
 [package]
-name = "mmc"
+name = "idyllic"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-mmc-pipeline = { path = "../mmc-pipeline" }
+idyllic-pipeline = { path = "../idyllic-pipeline" }
 log = "0.4.18"
 env_logger = "0.10.0"
 insta = { version = "1.28.0", features = ["yaml"] }
