@@ -89,13 +89,11 @@ data Term
   | Match STerm [SAlt]
   | Infix STerm Ident STerm
   | Neg STerm
-  | Sort Universe -- Type, Prop, Sort u
   | Pi [Param] STerm -- (x : A) -> B, {x : A} -> B, A -> B
   | Ann STerm STerm -- e : A  (type annotation)
   | Hole (Maybe Ident) -- _ or ?name for user holes
+  | Type
   deriving (Show, Eq, Ord)
-
-data Universe = UType | UProp | USort Int deriving (Show, Eq, Ord)
 
 data Param = Param
   { paramIdent :: Ident,
