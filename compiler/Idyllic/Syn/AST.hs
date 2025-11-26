@@ -1,5 +1,8 @@
+{-# LANGUAGE FlexibleInstances #-}
+
 module Idyllic.Syn.AST where
 
+import Control.Lens (Plated (..))
 import Data.Text (Text)
 import Idyllic.Utils.Span (Span)
 
@@ -95,6 +98,21 @@ data Term
   | Type
   deriving (Show, Eq, Ord)
 
+instance Plated (SynNode Term) where
+  plate _ (SynNode (Lit l) s) = pure (SynNode (Lit l) s)
+  plate _ (SynNode (Var x) s) = pure (SynNode (Var x) s)
+  plate f (SynNode (Let b body) s) = SynNode <$> (Let <$> traverseBind f b <*> f body) <*> pure s
+  plate f (SynNode (If cond thenT elseT) s) = SynNode <$> (If <$> f cond <*> f thenT <*> f elseT) <*> pure s
+  plate f (SynNode (Lam pats body) s) = (SynNode . Lam pats <$> f body) <*> pure s
+  plate f (SynNode (App fn args) s) = SynNode <$> (App <$> f fn <*> traverse f args) <*> pure s
+  plate f (SynNode (Match scrut alts) s) = SynNode <$> (Match <$> f scrut <*> traverse (traverseAlt f) alts) <*> pure s
+  plate f (SynNode (Infix left op right) s) = SynNode <$> (Infix <$> f left <*> pure op <*> f right) <*> pure s
+  plate f (SynNode (Neg t) s) = (SynNode . Neg <$> f t) <*> pure s
+  plate f (SynNode (Pi params body) s) = (SynNode . Pi params <$> f body) <*> pure s
+  plate f (SynNode (Ann t ann) s) = SynNode <$> (Ann <$> f t <*> f ann) <*> pure s
+  plate _ (SynNode (Hole mi) s) = pure (SynNode (Hole mi) s)
+  plate _ (SynNode Type s) = pure (SynNode Type s)
+
 data Param = Param
   { paramIdent :: Ident,
     paramType :: STerm,
@@ -109,8 +127,16 @@ data Bind
   | BindFun FunBind
   deriving (Show, Eq, Ord)
 
+traverseBind :: (Applicative f) => (STerm -> f STerm) -> SBind -> f SBind
+traverseBind f (SynNode (BindPat pb) s) = (SynNode . BindPat <$> traversePatBind f pb) <*> pure s
+traverseBind f (SynNode (BindFun fb) s) = (SynNode . BindFun <$> traverseFunBind f fb) <*> pure s
+
 data Rhs = RhsTerm STerm | RhsGuard [SGuard]
   deriving (Show, Eq, Ord)
+
+traverseRhs :: (Applicative f) => (STerm -> f STerm) -> Rhs -> f Rhs
+traverseRhs f (RhsTerm t) = RhsTerm <$> f t
+traverseRhs f (RhsGuard guards) = RhsGuard <$> traverse (traverseGuard f) guards
 
 data PatBind = PatBind
   { patBindPat :: SPat,
@@ -119,12 +145,18 @@ data PatBind = PatBind
   }
   deriving (Show, Eq, Ord)
 
+traversePatBind :: (Applicative f) => (STerm -> f STerm) -> PatBind -> f PatBind
+traversePatBind f (PatBind pat body whereDecls) = PatBind pat <$> traverseRhs f body <*> pure whereDecls
+
 data FunBind = FunBind
   { funName :: !Ident,
     funAlts :: [SAlt],
     funWhereDecls :: [SWhereDecl]
   }
   deriving (Show, Eq, Ord)
+
+traverseFunBind :: (Applicative f) => (STerm -> f STerm) -> FunBind -> f FunBind
+traverseFunBind f (FunBind name alts whereDecls) = FunBind name <$> traverse (traverseAlt f) alts <*> pure whereDecls
 
 type SAlt = SynNode Alt
 
@@ -134,6 +166,9 @@ data Alt = Alt
   }
   deriving (Show, Eq, Ord)
 
+traverseAlt :: (Applicative f) => (STerm -> f STerm) -> SAlt -> f SAlt
+traverseAlt f (SynNode (Alt pat body) s) = (SynNode . Alt pat <$> traverseRhs f body) <*> pure s
+
 type SGuard = SynNode Guard
 
 data Guard = Guard
@@ -141,6 +176,9 @@ data Guard = Guard
     guardBody :: STerm
   }
   deriving (Show, Eq, Ord)
+
+traverseGuard :: (Applicative f) => (STerm -> f STerm) -> SGuard -> f SGuard
+traverseGuard f (SynNode (Guard pat body) s) = (SynNode . Guard pat <$> f body) <*> pure s
 
 type SPat = SynNode Pat
 
