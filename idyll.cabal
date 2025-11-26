@@ -59,6 +59,8 @@ executable idyllic
     TupleSections
     TypeFamilies
     ViewPatterns
+    FlexibleInstances
+    TypeSynonymInstances
 
   build-depends:
     array,
