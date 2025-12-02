@@ -16,9 +16,23 @@ map f [] = []
 map f (x::xs) = f x :: map f xs
 
 @pub
+fun map (f : a -> b) (xs : [a]) : [b] =
+  foldr (\x acc -> f x :: acc) [] xs
+
+@pub
 foldl : (a -> b -> a) -> a -> [b] -> a
 foldl f acc [] = acc
 foldl f acc (x::xs) = foldl f (f acc x) xs
+
+@pub
+fun foldl (f : a -> b -> a) (acc : a) (xs : [b]) : a =
+  match xs with
+  | [] -> acc
+  | (x::xs') -> foldl f (f acc x) xs'
+
+fun foldl' : (a -> b -> a) -> a -> [b] -> a
+  | foldl' f !acc [] = acc
+  | foldl' f !acc (x::xs) = foldl' f (f acc x) xs
 
 @pub
 foldl' : (a -> b -> a) -> a -> [b] -> a
@@ -50,6 +64,11 @@ concatMap = concat >>> map
 (++) : [a] -> [a] -> [a]
 [] ++ ys = ys
 (x::xs) ++ ys = x :: (xs ++ ys)
+
+@pub
+fun (++) : [a] -> [a] -> [a] =
+  | [] ++ ys = ys
+  | (x::xs) ++ ys = x :: (xs ++ ys)
 
 @pub
 reverse : [a] -> [a]
@@ -93,9 +112,9 @@ any f [] = false
 any f (x::xs) = f x || any f xs
 
 @pub
+@inline(always)
 elem : a -> [a] -> Bool
-elem x [] = false
-elem x (y::ys) = if x == y then true else elem x ys
+elem x = foldr (\y acc -> x == y || acc) False
 
 @pub
 sum : Num a => [a] -> a 
@@ -116,6 +135,18 @@ take n ls
     unsafeTake !_ [] = []
     unsafeTake 1 (x::_) = [x]
     unsafeTake m (x::xs) = x :: unsafeTake (m - 1) xs
+
+@pub
+fun take : Nat -> [a] -> [a]
+  | take n ls if n < 0 = unsafeTake n ls
+  | take _ _ = []
+  where:
+    @inline(never)
+    fun unsafeTake : Nat -> [a] -> [a] =
+      | unsafeTake !_ [] = []
+      | unsafeTake 1 (x::_) = [x]
+      | unsafeTake m (x::xs) = x :: unsafeTake (m - 1) xs
+  end
 
 @pub
 drop : Nat -> [a] -> [a]
