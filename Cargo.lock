@@ -331,6 +331,150 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9a3a5bfb195931eeb336b2a7b4d761daec841b97f947d34394601737a7bba5e4"
 
 [[package]]
+name = "idyllic"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "env_logger",
+ "idyllic-pipeline",
+ "insta",
+ "log",
+ "pretty",
+ "rustyline",
+]
+
+[[package]]
+name = "idyllic-ast"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "env_logger",
+ "idyllic-token",
+ "idyllic-utils",
+ "insta",
+ "itertools",
+ "log",
+ "logos",
+ "num-bigint",
+ "num-complex",
+ "num-rational",
+ "pretty",
+]
+
+[[package]]
+name = "idyllic-pipeline"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "idyllic-ast",
+ "idyllic-query",
+ "idyllic-read",
+ "idyllic-token",
+ "idyllic-token-tree",
+ "idyllic-tokenize",
+ "idyllic-utils",
+ "insta",
+ "log",
+ "pretty",
+]
+
+[[package]]
+name = "idyllic-query"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "env_logger",
+ "idyllic-utils",
+ "insta",
+ "log",
+ "pretty",
+]
+
+[[package]]
+name = "idyllic-read"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "idyllic-token",
+ "idyllic-token-tree",
+ "idyllic-tokenize",
+ "idyllic-utils",
+ "insta",
+ "log",
+]
+
+[[package]]
+name = "idyllic-token"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "env_logger",
+ "idyllic-utils",
+ "insta",
+ "itertools",
+ "log",
+ "logos",
+ "num-bigint",
+ "num-complex",
+ "num-rational",
+ "pretty",
+]
+
+[[package]]
+name = "idyllic-token-tree"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "env_logger",
+ "idyllic-token",
+ "idyllic-utils",
+ "insta",
+ "itertools",
+ "log",
+ "logos",
+ "num-bigint",
+ "num-complex",
+ "num-rational",
+ "pretty",
+]
+
+[[package]]
+name = "idyllic-tokenize"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "env_logger",
+ "idyllic-token",
+ "idyllic-utils",
+ "insta",
+ "itertools",
+ "log",
+ "logos",
+ "num-bigint",
+ "num-complex",
+ "num-rational",
+ "pretty",
+]
+
+[[package]]
+name = "idyllic-utils"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "env_logger",
+ "insta",
+ "itertools",
+ "lasso",
+ "log",
+ "num-bigint",
+ "num-complex",
+ "num-rational",
+ "num-traits",
+ "once_cell",
+ "pretty",
+]
+
+[[package]]
 name = "insta"
 version = "1.42.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -457,150 +601,6 @@ name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "78ca9ab1a0babb1e7d5695e3530886289c18cf2f87ec19a575a0abdce112e3a3"
-
-[[package]]
-name = "mmc"
-version = "0.1.0"
-dependencies = [
- "clap",
- "env_logger",
- "insta",
- "log",
- "mmc-pipeline",
- "pretty",
- "rustyline",
-]
-
-[[package]]
-name = "mmc-ast"
-version = "0.1.0"
-dependencies = [
- "colored",
- "env_logger",
- "insta",
- "itertools",
- "log",
- "logos",
- "mmc-token",
- "mmc-utils",
- "num-bigint",
- "num-complex",
- "num-rational",
- "pretty",
-]
-
-[[package]]
-name = "mmc-pipeline"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "insta",
- "log",
- "mmc-ast",
- "mmc-query",
- "mmc-read",
- "mmc-token",
- "mmc-token-tree",
- "mmc-tokenize",
- "mmc-utils",
- "pretty",
-]
-
-[[package]]
-name = "mmc-query"
-version = "0.1.0"
-dependencies = [
- "colored",
- "env_logger",
- "insta",
- "log",
- "mmc-utils",
- "pretty",
-]
-
-[[package]]
-name = "mmc-read"
-version = "0.1.0"
-dependencies = [
- "env_logger",
- "insta",
- "log",
- "mmc-token",
- "mmc-token-tree",
- "mmc-tokenize",
- "mmc-utils",
-]
-
-[[package]]
-name = "mmc-token"
-version = "0.1.0"
-dependencies = [
- "colored",
- "env_logger",
- "insta",
- "itertools",
- "log",
- "logos",
- "mmc-utils",
- "num-bigint",
- "num-complex",
- "num-rational",
- "pretty",
-]
-
-[[package]]
-name = "mmc-token-tree"
-version = "0.1.0"
-dependencies = [
- "colored",
- "env_logger",
- "insta",
- "itertools",
- "log",
- "logos",
- "mmc-token",
- "mmc-utils",
- "num-bigint",
- "num-complex",
- "num-rational",
- "pretty",
-]
-
-[[package]]
-name = "mmc-tokenize"
-version = "0.1.0"
-dependencies = [
- "colored",
- "env_logger",
- "insta",
- "itertools",
- "log",
- "logos",
- "mmc-token",
- "mmc-utils",
- "num-bigint",
- "num-complex",
- "num-rational",
- "pretty",
-]
-
-[[package]]
-name = "mmc-utils"
-version = "0.1.0"
-dependencies = [
- "colored",
- "env_logger",
- "insta",
- "itertools",
- "lasso",
- "log",
- "num-bigint",
- "num-complex",
- "num-rational",
- "num-traits",
- "once_cell",
- "pretty",
-]
 
 [[package]]
 name = "nibble_vec"
