@@ -1,1 +1,9 @@
+dist-*
+.vscode
+.idea
+.DS_Store
+.repl_history
 target
+.repos
+*.OLD
+line-count.sh
