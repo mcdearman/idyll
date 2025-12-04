@@ -29,7 +29,7 @@ fn main() {
         eprintln!("No previous history.");
     }
 
-    println!("Welcome to MiniML!");
+    println!("Welcome to Idyll!");
 
     loop {
         let readline = rl.readline("> ");
