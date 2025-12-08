@@ -45,8 +45,6 @@ pub enum TokenKind {
     Int,
     #[regex(r"([0-9]*[.])?[0-9]+", priority = 2)]
     Real,
-    #[regex(r"True|False")]
-    Bool,
     #[regex(r#""(\\.|[^"\\])*""#)]
     String,
     #[regex(r"'(\\.|[^'\\])'")]
@@ -81,8 +79,6 @@ pub enum TokenKind {
     Or,
     #[token("and")]
     And,
-    #[token("not")]
-    Not,
     #[token("=")]
     Eq,
     #[token("!=")]
@@ -101,10 +97,6 @@ pub enum TokenKind {
     Comma,
     #[token(".")]
     Period,
-    #[token("..")]
-    DoublePeriod,
-    #[token("..=")]
-    DoublePeriodEq,
     #[token(":")]
     Colon,
     #[token(";")]
@@ -179,7 +171,6 @@ impl Display for TokenKind {
             Whitespace => write!(f, "Whitespace"),
             Int => write!(f, "Int"),
             Real => write!(f, "Real"),
-            Bool => write!(f, "Bool"),
             String => write!(f, "String"),
             Char => write!(f, "Char"),
             LowerIdent => write!(f, "LowerIdent"),
@@ -196,7 +187,6 @@ impl Display for TokenKind {
             Caret => write!(f, "Caret"),
             Or => write!(f, "Or"),
             And => write!(f, "And"),
-            Not => write!(f, "Not"),
             Eq => write!(f, "Eq"),
             Neq => write!(f, "Neq"),
             Lt => write!(f, "Lt"),
@@ -206,8 +196,6 @@ impl Display for TokenKind {
             Bang => write!(f, "Bang"),
             Comma => write!(f, "Comma"),
             Period => write!(f, "Period"),
-            DoublePeriod => write!(f, "DoublePeriod"),
-            DoublePeriodEq => write!(f, "DoublePeriodEq"),
             Colon => write!(f, "Colon"),
             SemiColon => write!(f, "SemiColon"),
             LParen => write!(f, "LParen"),
@@ -243,4 +231,3 @@ impl Display for TokenKind {
         }
     }
 }
-
