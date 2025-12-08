@@ -1,6 +1,6 @@
 use idyllic_pipeline::Pipeline;
 use rustyline::{
-    error::ReadlineError, validate::Validator, Completer, Editor, Helper, Highlighter, Hinter,
+    Completer, Editor, Helper, Highlighter, Hinter, error::ReadlineError, validate::Validator,
 };
 
 #[derive(Completer, Helper, Highlighter, Hinter)]
@@ -46,7 +46,7 @@ fn main() {
                 rl.add_history_entry(line.as_str())
                     .expect("Failed to add history entry");
 
-                let pipeline = Pipeline::new(&line);
+                let mut pipeline = Pipeline::new(&line);
                 pipeline.run();
             }
             Err(ReadlineError::Interrupted) => {
