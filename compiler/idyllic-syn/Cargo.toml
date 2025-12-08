@@ -1,0 +1,12 @@
+[package]
+name = "idyllic-syn"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+idyllic-utils = { path = "../idyllic-utils" }
+env_logger = "0.11.8"
+insta = "1.44.3"
+itertools = "0.14.0"
+log = "0.4.29"
+logos = "0.16.0"
