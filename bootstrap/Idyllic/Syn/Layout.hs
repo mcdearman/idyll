@@ -1,79 +1,71 @@
-module Idyllic.Syn.Layout where
+module Idyllic.Syn.Layout (layout) where
 
--- import Control.Monad.Reader (MonadReader (ask))
--- import Control.Monad.Reader.Class (asks)
--- import Control.Monad.State (MonadState (get, put), evalStateT)
--- import Control.Monad.State.Lazy
--- import Data.ByteString (ByteString)
--- import Data.Text.Lazy (toStrict, unpack)
--- import Debug.Trace (trace)
--- import MMC.Build.Effect (HasDiagnostic (..), PipelineEnv (..), PipelineM)
--- import MMC.Syn.GreenNode (SyntaxKind (..), Token (..), isLayoutKeyword, tokenLength)
--- import MMC.Syn.TokenTree (Delim)
--- import MMC.Utils.LineIndex (LineIndex, offsetToLineCol)
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.Char8 as BSC
+import Idyllic.Syn.Token
+-- Assuming Span constructor is available
+import Idyllic.Utils.LineIndex (LineIndex, offsetToLineCol)
+import Idyllic.Utils.Span (Span (..))
 
--- data Event
---   = EventTok !Token
---   | EventStartGroup !Delim
---   | EventCloseGroup !Delim
---   | EventRef !Int
---   | EventSentinel !Int
---   deriving (Show, Eq)
+layout :: LineIndex -> ByteString -> [Token] -> [Token]
+layout li src tokens = tokens
 
--- data VTok
---   = VTok !Token
---   | VIndent !Int
---   | VDedent !Int
---   | VSemi !Int
---   deriving (Show, Eq)
-
--- -- let: x = 1
--- --      y = 2
--- --  in x + y
-
--- -- data Cursor = Cursor
--- --   { tokens :: [Token],
--- --     stack :: [Frame],
--- --     offset :: !Int,
--- --     col :: !Int
--- --   }
-
--- -- type LayoutM = State Cursor
-
--- -- runLayout :: [Token] -> PipelineM [VTok]
--- -- runLayout ts = do
--- --   li <- asks pipelineLineIndex
--- --   pure $ evalState (layout li) (Cursor ts [] 0 1)
-
--- -- layout :: LineIndex -> LayoutM [VTok]
--- -- layout li = undefined
-
--- -- bump :: LineIndex -> LayoutM VTok
--- -- bump li = do
--- --   Cursor ts stack offset col <- get
--- --   case ts of
--- --     [] -> error "no more tokens"
--- --     (t : ts') -> do
--- --       put $ Cursor ts' stack (offset + tokenLength t) (col + 1)
--- --       pure $ VTok t
-
--- layout :: LineIndex -> [Token] -> [VTok]
--- layout li ts = go ts 0 [1]
+-- layout src tokens = go tokens [0] False
 --   where
---     go :: [Token] -> Int -> [Int] -> [VTok]
---     --  L ({n} : ts) [] = {  :  (L ts [n]) if n > 0 (Note 1)
---     go (t : c : ts) o []
---       | isLayoutHerald t c =
---           let (_, col) = offsetToLineCol li o
---            in VIndent col : go (c : ts) col [col]
---     go (t : ts) col (0 : ms) | tokenKind t == SyntaxKindRBrace = VTok t : go ts col ms
---     go (t : ts) _ ms | tokenKind t == SyntaxKindRBrace = error "unmatched right brace"
---     go (t : ts) o ms | tokenKind t == SyntaxKindLBrace = VTok t : go ts o (0 : ms)
---     go (t : ts) o (m : ms) | m /= 0 = VDedent m : go (t : ts) o ms
---     go (t : ts) o ms = VTok t : go ts o ms
---     go [] _ [] = []
---     go [] o (m : ms) | m /= 0 = VDedent m : go [] o ms
---     go _ _ _ = undefined
+--     -- Helper to create synthetic tokens
+--     makeToken :: TokenKind -> Span -> Token
+--     makeToken k s = Token k s
 
--- isLayoutHerald :: Token -> Token -> Bool
--- isLayoutHerald t c = isLayoutKeyword t && tokenKind c == SyntaxKindColon
+--     go :: [Token] -> [Int] -> Bool -> [Token]
+
+--     -- 1. End of File: Close all open blocks
+--     go [] (0 : []) _ = []
+--     go [] (m : ms) _ = makeToken TokenKindRBrace (Span 0 0) : go [] ms False
+--     go [] [] _ = [] -- Should not happen if stack starts with [0]
+
+--     -- 2. Trivia: Pass through, but track Newlines
+--     go (t : ts) stack nl
+--       | tokenKind t == TokenKindNewline = go ts stack True -- Note the newline
+--       | isTrivia t = go ts stack nl -- Skip other trivia (comments/spaces)
+
+--     -- 3. The "Trigger" Case: Keyword + Colon (e.g., "let" + ":")
+--     -- We match the keyword, the colon, and the *next* real token to set indentation.
+--     go (tKw : tCol : ts) stack nl
+--       | isLayoutKeyword tKw src && tokenKind tCol == TokenKindColon =
+--           let -- We need to find the next meaningful token to determine indentation
+--               (trivia, nextReal : rest) = break (not . isTrivia) ts
+--               indentCol = getColumn src nextReal
+
+--               -- Create the LBrace
+--               lBrace = makeToken TokenKindLBrace (tokenSpan tCol)
+--            in -- The Keyword is emitted, the Colon is consumed/replaced by LBrace
+
+--               -- Logic: Emit Keyword -> Emit LBrace -> Recurse
+--               -- We Push the new indentation level to the stack
+--               tKw : lBrace : trivia ++ go (nextReal : rest) (indentCol : stack) False
+--     -- 4. Standard Token Processing
+--     go (t : ts) stack@(top : rest) nl
+--       | nl -- We just came from a newline, check indentation
+--         =
+--           let col = getColumn src t
+--            in case compare col top of
+--                 EQ ->
+--                   -- Same level: Insert semicolon
+--                   makeToken TokenKindSemi (tokenSpan t) : t : go ts stack False
+--                 GT ->
+--                   -- Indented: Just continue (it's a continuation line)
+--                   t : go ts stack False
+--                 LT ->
+--                   -- Dedented: Close block(s)
+--                   -- We emit RBrace and RECURSE on the SAME token 't'
+--                   -- to see if we need to close more blocks or insert a semi.
+--                   makeToken TokenKindRBrace (tokenSpan t) : go (t : ts) rest True
+--       | otherwise -- No newline, just emit
+--         =
+--           t : go ts stack False
+
+getColumn :: LineIndex -> Token -> Int
+getColumn li tok = snd $ offsetToLineCol li startOffset
+  where
+    startOffset = spanStart (tokenSpan tok)

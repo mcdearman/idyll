@@ -16,13 +16,6 @@ fib n = loop n 0 1
     loop 0 a _ = a
     loop i a b = loop (i - 1) b (a + b)
 
-fun fib (n : Int) : Int =
-  loop n 0 1
-  where
-    fun loop 0 a _ = a
-      | loop i a b = loop (i - 1) b (a + b)
-  end
-
 fibs : [Integer]
 fibs = 0 :: 1 :: zipWith (+) fibs (drop 1 fibs)
 
@@ -41,11 +34,6 @@ ack : Int -> Int -> Int
 ack 0 n = n + 1
 ack m 0 = ack (m - 1) 1
 ack m n = ack (m - 1) (ack m (n - 1))
-
-fun ack : Int -> Int -> Int
-  | ack 0 n = n + 1
-  | ack m 0 = ack (m - 1) 1
-  | ack m n = ack (m - 1) (ack m (n - 1))
 
 -- type alias
 type Point = (Int, Int)
