@@ -1,8 +1,0 @@
-[package]
-name = "idyllic-pipeline"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-idyllic-utils = { path = "../idyllic-utils" }
-idyllic-syn = { path = "../idyllic-syn" }

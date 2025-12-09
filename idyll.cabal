@@ -1,0 +1,93 @@
+cabal-version: 3.0
+name: idyll
+version: 0.1.0.0
+synopsis: The Idyll programming language
+license: BSD-3-Clause
+license-file: LICENSE
+author: Chris McDearman
+maintainer: mcdearmanchris@gmail.com
+category: Language
+build-type: Simple
+extra-doc-files: CHANGELOG.md
+
+common warnings
+  ghc-options:
+    -Wall
+    -Werror=missing-signatures
+    -Werror=incomplete-patterns
+    -Werror=incomplete-uni-patterns
+    -Wno-unused-do-bind
+
+--   -f+megaparsec-compat
+--   -fllvm
+--   -haddock
+--   -ddump-simpl -ddump-cmm -ddump-stg-final -ddump-to-file -dsuppress-all
+executable idyllic
+  import: warnings
+  main-is: Main.hs
+  other-modules:
+    Idyllic.Build
+    Idyllic.Build.Driver
+    Idyllic.Build.Pipeline
+    Idyllic.Build.Pipeline.Effect
+    Idyllic.Core
+    Idyllic.Rename.HIR
+    Idyllic.Rename.Resolver
+    Idyllic.Rename.Symbol
+    Idyllic.Static.Scc
+    Idyllic.Syn.AST
+    Idyllic.Syn.Layout
+    Idyllic.Syn.Lexer
+    Idyllic.Syn.Parser
+    Idyllic.Syn.Token
+    Idyllic.Syn.TokenTree
+    Idyllic.Typing.Infer
+    Idyllic.Typing.Ty
+    Idyllic.Utils.LineIndex
+    Idyllic.Utils.Span
+
+  default-extensions:
+    BangPatterns
+    FlexibleInstances
+    LambdaCase
+    MagicHash
+    MultilineStrings
+    OrPatterns
+    OverloadedStrings
+    PatternSynonyms
+    RecordWildCards
+    ScopedTypeVariables
+    TupleSections
+    TypeFamilies
+    TypeSynonymInstances
+    ViewPatterns
+
+  build-depends:
+    array,
+    base,
+    bytestring,
+    containers,
+    data-default,
+    diagnose,
+    hashable,
+    haskeline,
+    intern,
+    lens,
+    megaparsec,
+    mtl,
+    optics,
+    optparse-applicative,
+    parser-combinators,
+    pretty-simple,
+    prettyprinter,
+    primitive,
+    stm,
+    text,
+    transformers,
+    unordered-containers,
+    vector,
+    wcwidth,
+
+  build-tool-depends: alex:alex
+  hs-source-dirs: bootstrap
+  default-language: Haskell2010
