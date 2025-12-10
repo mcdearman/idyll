@@ -60,7 +60,7 @@ miniml :-
 
   $tab                           { \p bs -> Token TokenKindTab (makeSpan p bs) }
   $whitespace+                   { \p bs -> Token TokenKindWhitespace (makeSpan p bs) }
-  "--".*                         { \p bs -> Token TokenKindComment (makeSpan p bs) }
+  "--".*                         ;
   $newline                       { \p bs -> Token TokenKindNewline (makeSpan p bs) }
 
   "("                            { \p bs -> Token TokenKindLParen (makeSpan p bs) }
