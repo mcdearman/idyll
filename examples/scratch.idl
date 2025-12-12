@@ -16,6 +16,18 @@ fib n = loop n 0 1
     loop 0 a _ = a
     loop i a b = loop (i - 1) b (a + b)
 
+fun fib (n : Int) : Int =
+  let loop i a b =
+    if i == 0 then a
+    else loop (i - 1) b (a + b)
+
+fun fib : Int -> Int =
+  go 0 1
+  where
+    fun go a b 0 = a
+      | go a b n = go b (a + b) (n - 1)
+  end
+
 fibs : [Integer]
 fibs = 0 :: 1 :: zipWith (+) fibs (drop 1 fibs)
 

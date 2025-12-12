@@ -27,7 +27,17 @@ layout lineIndex src = go [1]
                     then Token TokenKindLBrace (Span 0 0) : go (col : m : ms) (h : rest)
                     else error "Layout error: expected indented block after layout keyword"
             _ -> error "Shouldn't be possible to have a layout keyword not followed by any tokens"
-    go [] (t : c : ts) = t : go [] ts
+    go [] (t : c : ts)
+      | isLayoutKeyword t src && tokenKind c == TokenKindColon =
+          case span isTrivia ts of
+            (_, h : rest) ->
+              let col = getColumn lineIndex h
+               in if col > 1
+                    then Token TokenKindLBrace (Span 0 0) : go [col] (Token TokenKindLBrace (Span 0 0) : h : rest)
+                    else error "Layout error: expected indented block after layout keyword"
+            _ -> error "Shouldn't be possible to have a layout keyword not followed by any tokens"
+    -- go ms (t : ts)
+    --   | tokenKind t == TokenKindLBrace =
     go ms (t : ts) = t : go ms ts
     go [] [] = []
     go (m : ms) []
