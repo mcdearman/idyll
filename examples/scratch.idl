@@ -2,8 +2,22 @@ gcd : Int -> Int -> Int
 gcd a 0 = a
 gcd a b = gcd b (a % b)
 
+fun gcd (a : Int) (b : Int) : Int =
+  if b == 0 then a
+  else gcd b (a % b)
+
+fun gcd : Int -> Int -> Int
+  | gcd a 0 = a
+  | gcd a b = gcd b (a % b)
+
 lcm : Int -> Int -> Int
 lcm a b = a * b / gcd a b
+
+fun lcm (a : Int) (b : Int) : Int =
+  a * b / gcd a b
+
+fun lcm : Int -> Int -> Int
+  | lcm a b = a * b / gcd a b
 
 @pub
 sieve : [Int] -> [Int]
@@ -20,9 +34,9 @@ fun fib (n : Int) : Int =
   let loop i a b =
     if i == 0 then a
     else loop (i - 1) b (a + b)
+  in loop n 0 1
 
-fun fib : Int -> Int =
-  go 0 1
+fun fib : Int -> Int = go 0 1
   where
     fun go a b 0 = a
       | go a b n = go b (a + b) (n - 1)

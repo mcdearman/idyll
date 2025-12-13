@@ -1,6 +1,6 @@
 @pub
 @derive(Debug, PartialEq)
-codata Stream a =
+codata Stream m a =
   | Nil  : Stream m a
   | (::) : a -> m (Stream m a) -> Stream m a
 
