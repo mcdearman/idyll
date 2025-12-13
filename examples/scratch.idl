@@ -24,17 +24,28 @@ sieve : [Int] -> [Int]
 sieve [] = []
 sieve (p :: xs) = p :: sieve [x | x <- xs, x `mod` p > 0]
 
-fib : Int -> Int
-fib n = loop n 0 1
-  where
-    loop 0 a _ = a
-    loop i a b = loop (i - 1) b (a + b)
+@pub
+fun sieve (xs : [Int]) : [Int] =
+  match xs with
+  | [] -> []
+  | p :: xs' -> p :: sieve [x | x <- xs', x `mod` p > 0]
 
-fun fib (n : Int) : Int =
-  let loop i a b =
+@pub
+fun sieve : [Int] -> [Int] =
+  | sieve [] = []
+  | sieve (p :: xs) = p :: sieve [x | x <- xs, x `mod` p > 0]
+
+fib : Int -> Int
+fib = loop 0 1
+  where
+    loop a _ 0 = a
+    loop a b n = loop b (a + b) (n - 1)
+
+fun fib : Int -> Int =
+  let loop a b i =
     if i == 0 then a
-    else loop (i - 1) b (a + b)
-  in loop n 0 1
+    else loop a (b + a) (i - 1)
+  in loop 0 1
 
 fun fib : Int -> Int = go 0 1
   where
