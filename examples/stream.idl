@@ -1,5 +1,5 @@
 @pub
 @derive(Debug, PartialEq)
 codata Stream a where
-  Nil  : Stream a
-  (::) : Stream a -> Stream a
+  Head : Stream a -> a
+  Tail : Stream a -> Stream a
