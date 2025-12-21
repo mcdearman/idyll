@@ -44,6 +44,8 @@ layout lineIndex src = go [1]
       | m == 0 = error "Shouldn't be possible to be in a non-layout context at EOF"
       | otherwise = Token TokenKindRBrace (Span 0 0) : go ms []
 
+
+
 getColumn :: LineIndex -> Token -> Int
 getColumn li tok = snd $ offsetToLineCol li startOffset
   where

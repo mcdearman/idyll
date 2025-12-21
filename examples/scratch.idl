@@ -10,7 +10,14 @@ sieve : [Int] -> [Int]
 sieve [] = []
 sieve (p :: xs) = p :: sieve [x | x <- xs, x `mod` p > 0]
 
-fibs : [Integer]
+codata Stream a where
+  head : Stream a -> a
+  tail : Stream a -> Stream a
+
+codata Stream a where
+  (::) : a -> Stream a -> Stream a
+
+fibs : Stream Integer
 fibs = 0 :: 1 :: zipWith (+) fibs (drop 1 fibs)
 
 fib : Int -> Int
@@ -18,13 +25,6 @@ fib = go 0 1
   where
     go a b 0 = a
     go a b n = go b (a + b) (n - 1)
-
-fun fib : Int -> Int =
-  go 0 1
-  where
-    fun go a b 0 = a
-      | go a b n = go b (a + b) (n - 1)
-  end
 
 -- naive recursive factorial
 fact : Int -> Int
@@ -36,13 +36,6 @@ fact = go 1
   where
     go 0 acc = acc
     go n acc = go (n - 1) (acc * n)
-
-fun fact : Int -> Int =
-  go 1
-  where
-    fun go 0 acc = acc
-      | go n acc = go (n - 1) (acc * n)
-  end
 
 ack : Int -> Int -> Int
 ack 0 n = n + 1

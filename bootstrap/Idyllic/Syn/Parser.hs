@@ -9,3 +9,6 @@ import Idyllic.Utils.Span (Span (..))
 import Text.Megaparsec (Parsec)
 
 type Parser = Parsec Void [Token]
+
+withSpan :: Parser a -> Parser (SynNode a)
+withSpan p = undefined
