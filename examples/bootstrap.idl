@@ -108,3 +108,16 @@ end
 |> -- forward pipe operator
 ; -- sugar for let-binding with no name
 ! -- dereference a ref
+
+-- Literals
+"hello" -- String
+123 -- Int
+123.45 -- Float
+True, False -- Bool
+'a' -- Char
+[..] -- range
+[1, 2, 3] -- list
+#[1, 2, 3] -- vector
+$[1, 2, 3] -- array
+(1, "a", True) -- tuple
+{ name = "Alice", age = 30 } -- record instance

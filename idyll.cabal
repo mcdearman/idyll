@@ -26,11 +26,9 @@ executable idyllic
   import: warnings
   main-is: Main.hs
   other-modules:
-    Idyllic.Build
     Idyllic.Build.Driver
     Idyllic.Build.Pipeline
     Idyllic.Build.Pipeline.Effect
-    Idyllic.Core
     Idyllic.Rename.HIR
     Idyllic.Rename.Resolver
     Idyllic.Rename.Symbol
@@ -39,7 +37,6 @@ executable idyllic
     Idyllic.Syn.Lexer
     Idyllic.Syn.Parser
     Idyllic.Syn.Token
-    Idyllic.Syn.TokenTree
     Idyllic.Typing.Infer
     Idyllic.Typing.Ty
     Idyllic.Utils.LineIndex

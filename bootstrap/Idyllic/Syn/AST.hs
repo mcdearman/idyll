@@ -5,7 +5,7 @@ import Idyllic.Utils.Span (Span)
 
 data SynNode a = SynNode
   { synNodeKind :: a,
-    synNodeSpan :: !Span
+    synNodeSpan :: Span
   }
   deriving (Show, Eq, Ord)
 
@@ -18,122 +18,67 @@ data Module = Module
 type SDecl = SynNode Decl
 
 data Decl
-  = DeclClassDecl SWhereDecl
-  | DeclRecordDef SRecordDef
+  = DeclFun Ident [SPat] SExpr
+  | DeclDef Ident SExpr
+  | DeclRecord SRecordDef
+  | DeclData SDataDef
+  | DeclTypeAlias Ident SAnn
   deriving (Show, Eq, Ord)
 
 type SRecordDef = SynNode RecordDef
 
 data RecordDef = RecordDef
-  { recordName :: !Ident,
-    recordTypeParams :: [Ident],
-    recordFields :: [(Ident, STerm)]
+  { recordName :: Ident,
+    recordFields :: [(Ident, SAnn)]
   }
   deriving (Show, Eq, Ord)
 
-type SClassDef = SynNode ClassDef
+type SDataDef = SynNode DataDef
 
-data ClassDef
-  = ClassDef
-  { className :: !Ident,
-    classSuperclasses :: [Ident],
-    classTypeParams :: [Ident],
-    classDecls :: [SClassDecl]
+data DataDef = DataDef
+  { dataName :: Ident,
+    dataCons :: [(Ident, [SPat])]
   }
   deriving (Show, Eq, Ord)
 
-type SClassDecl = SynNode ClassDecl
-
-data ClassDecl
-  = ClassDeclSig SSig
-  | ClassDeclBind FunBind
-  deriving (Show, Eq, Ord)
-
-type SWhereDecl = SynNode WhereDecl
-
-data WhereDecl = WhereDecl
-  { whereDeclSig :: SSig,
-    whereDeclBind :: SBind
-  }
-  deriving (Show, Eq, Ord)
-
-type SInstancDecl = SynNode InstanceDecl
-
-data InstanceDecl = InstanceDecl
-  { instanceClass :: !Ident,
-    instanceTypeParams :: [Ident],
-    instanceAnn :: STerm,
-    instanceDecls :: [SWhereDecl]
-  }
-  deriving (Show, Eq, Ord)
-
-type SSig = SynNode Sig
-
-data Sig = Sig
-  { sigNames :: [Ident],
-    sigAnn :: STerm
-  }
-  deriving (Show, Eq, Ord)
-
-type STerm = SynNode Term
+type SExpr = SynNode Expr
 
 data Expr
-  = Lit Lit
-  | Var Ident
-  | Let SBind STerm
-  | If STerm STerm STerm
-  | Lam [SPat] STerm
-  | App STerm [STerm]
-  | Match STerm [SAlt]
-  | Infix STerm Ident STerm
-  | Neg STerm
+  = ExprLit Lit
+  | ExprIdent Ident
+  | ExprApp SExpr [SExpr]
+  | ExprLam [SPat] SExpr
+  | ExprLet Bind SExpr
+  | ExprIf SExpr SExpr SExpr
+  | ExprMatch SExpr [(SPat, SExpr)]
+  | ExprAnn SExpr SExpr
+  | ExprCons Ident [SExpr]
+  | ExprRecord [(Ident, SExpr)]
+  | ExprFieldAccess SExpr Ident
+  | ExprList [SExpr]
+  | ExprVec [SExpr]
+  | ExprTuple [SExpr]
+  | ExprRef SExpr
+  | ExprUnit
   deriving (Show, Eq, Ord)
 
-data Param = Param
-  { paramIdent :: Ident,
-    paramType :: STerm,
-    paramImplicit :: Bool
-  }
+data Bind = BindFun FunBind | BindPattern PatBind
   deriving (Show, Eq, Ord)
 
-type SBind = SynNode Bind
-
-data Bind
-  = BindPat PatBind
-  | BindFun FunBind
+data FunBind = FunBind Ident [SPat] SExpr
   deriving (Show, Eq, Ord)
 
-data Rhs = RhsTerm STerm | RhsGuard [SGuard]
+data PatBind = PatBind Pat SExpr
   deriving (Show, Eq, Ord)
 
-data PatBind = PatBind
-  { patBindPat :: SPat,
-    patBindBody :: Rhs,
-    patBindWhereDecls :: [SWhereDecl]
-  }
-  deriving (Show, Eq, Ord)
+type SAnn = SynNode Ann
 
-data FunBind = FunBind
-  { funName :: !Ident,
-    funAlts :: [SAlt],
-    funWhereDecls :: [SWhereDecl]
-  }
-  deriving (Show, Eq, Ord)
-
-type SAlt = SynNode Alt
-
-data Alt = Alt
-  { altPat :: SPat,
-    altBody :: Rhs
-  }
-  deriving (Show, Eq, Ord)
-
-type SGuard = SynNode Guard
-
-data Guard = Guard
-  { guardPat :: SPat,
-    guardBody :: STerm
-  }
+data Ann
+  = AnnIdent Ident
+  | AnnFun SAnn SAnn
+  | AnnList SAnn
+  | AnnTuple [SAnn]
+  | AnnUnit
   deriving (Show, Eq, Ord)
 
 type SPat = SynNode Pat
@@ -155,6 +100,7 @@ type SLit = SynNode Lit
 
 data Lit
   = LitInt
+  | LitFloat
   | LitString
   | LitChar
   deriving (Show, Eq, Ord)
