@@ -51,8 +51,15 @@ def aliceName = alice.name
 def olderAlice = { alice with age = alice.age + 1 }
 
 -- pattern matching with records
-def describePerson (Person { name, age } : Person) : String =
+fun describePerson (Person { name, age } : Person) : String =
   name ++ " is " ++ Int.toString age ++ " years old"
+
+-- refs
+def counter = ref 0
+
+-- mutable update
+fun inc (counter : ref Int) : () =
+  counter := !counter + 1
 
 -- thunks
 data LazyState a 
@@ -62,11 +69,11 @@ data LazyState a
 type Lazy a = ref (LazyState a)
 
 -- delaying a computation
-def delay (f : () -> a) : Lazy a =
+fun delay (f : () -> a) : Lazy a =
   ref (Thunk f)
 
 -- forcing a thunk mutates it to a value
-def force (l : Lazy a) : a =
+fun force (l : Lazy a) : a =
   match !l with
   | Forced v -> v
   | Thunk f -> let v = f () in
@@ -78,3 +85,17 @@ def thunkedValue : Lazy Int = delay (expensiveComputation ())
 data Stream a where
   (::) : a -> Lazy (Stream a) -> Stream a
 end
+
+-- Operators
++ -- addition on a Int, Float, Integer, Rational
+- -- subtraction on a Int, Float, Integer, Rational
+* -- multiplication on a Int, Float, Integer, Rational
+/ -- division on a Int, Float, Integer, Rational
+% -- modulo on Int, Integer, Rational
+^ -- exponentiation on Int, Integer, Rational
+
+++ -- String concat
+. -- function composition
+|> -- forward pipe operator
+; -- sugar for let-binding with no name
+! -- dereference a ref
