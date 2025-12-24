@@ -4,14 +4,12 @@ module Idyllic.Syn.Token
     isTrivia,
     isSpace,
     isKeyword,
-    isLayoutKeyword,
   )
 where
 
 import Data.ByteString (ByteString)
-import Idyllic.Utils.Span (Span, slice)
 
-data Token = Token {tokenKind :: TokenKind, tokenSpan :: !Span}
+data Token = Token {tokenKind :: TokenKind, tokenText :: ByteString}
   deriving (Show, Eq, Ord)
 
 data TokenKind
@@ -61,12 +59,9 @@ isSpace = go . tokenKind
     go TokenKindWhitespace = True
     go _ = False
 
-tokenText :: Token -> ByteString -> ByteString
-tokenText t = slice $ tokenSpan t
-
-isKeyword :: Token -> ByteString -> Bool
-isKeyword t src = case tokenKind t of
-  TokenKindLowercaseIdent -> go $ tokenText t src
+isKeyword :: Token -> Bool
+isKeyword t = case tokenKind t of
+  TokenKindLowercaseIdent -> go $ tokenText t
   _ -> False
   where
     go "use" = True
@@ -81,14 +76,4 @@ isKeyword t src = case tokenKind t of
     go "record" = True
     go "data" = True
     go "type" = True
-    go _ = False
-
-isLayoutKeyword :: Token -> ByteString -> Bool
-isLayoutKeyword t src = case tokenKind t of
-  TokenKindLowercaseIdent -> go $ tokenText t src
-  _ -> False
-  where
-    go "let" = True
-    go "where" = True
-    go "with" = True
     go _ = False
