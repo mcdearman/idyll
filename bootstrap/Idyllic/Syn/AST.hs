@@ -1,6 +1,5 @@
 module Idyllic.Syn.AST where
 
-import Control.Lens (Plated (..))
 import Data.Text (Text)
 import Idyllic.Utils.Span (Span)
 
@@ -104,7 +103,6 @@ data Bind
   | BindFun FunBind
   deriving (Show, Eq, Ord)
 
-
 data Rhs = RhsTerm STerm | RhsGuard [SGuard]
   deriving (Show, Eq, Ord)
 
@@ -115,14 +113,12 @@ data PatBind = PatBind
   }
   deriving (Show, Eq, Ord)
 
-
 data FunBind = FunBind
   { funName :: !Ident,
     funAlts :: [SAlt],
     funWhereDecls :: [SWhereDecl]
   }
   deriving (Show, Eq, Ord)
-
 
 type SAlt = SynNode Alt
 
@@ -132,7 +128,6 @@ data Alt = Alt
   }
   deriving (Show, Eq, Ord)
 
-
 type SGuard = SynNode Guard
 
 data Guard = Guard
@@ -140,9 +135,6 @@ data Guard = Guard
     guardBody :: STerm
   }
   deriving (Show, Eq, Ord)
-
-traverseGuard :: (Applicative f) => (STerm -> f STerm) -> SGuard -> f SGuard
-traverseGuard f (SynNode (Guard pat body) s) = (SynNode . Guard pat <$> f body) <*> pure s
 
 type SPat = SynNode Pat
 
@@ -156,16 +148,6 @@ data Pat
   | PatTuple [SPat]
   | PatUnit
   deriving (Show, Eq, Ord)
-
-instance Plated SPat where
-  plate _ (SynNode PatWildcard s) = pure (SynNode PatWildcard s)
-  plate _ (SynNode (PatLit l) s) = pure (SynNode (PatLit l) s)
-  plate _ (SynNode (PatIdent x) s) = pure (SynNode (PatIdent x) s)
-  plate f (SynNode (PatCons con pats) s) = (SynNode . PatCons con <$> traverse f pats) <*> pure s
-  plate f (SynNode (PatAs x pat) s) = (SynNode . PatAs x <$> f pat) <*> pure s
-  plate f (SynNode (PatList pats) s) = (SynNode . PatList <$> traverse f pats) <*> pure s
-  plate f (SynNode (PatTuple pats) s) = (SynNode . PatTuple <$> traverse f pats) <*> pure s
-  plate _ (SynNode PatUnit s) = pure (SynNode PatUnit s)
 
 type Ident = SynNode Text
 

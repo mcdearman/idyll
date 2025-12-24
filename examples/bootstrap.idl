@@ -79,6 +79,15 @@ fun force (l : Lazy a) : a =
   | Thunk f -> let v = f () in
       l := Forced v; v
 
+-- self-updating thunks
+record Thunk a {
+  force : ref (() -> a),
+}
+
+fun delay (f : () -> a) : Thunk a =
+  Thunk { force = \() -> let res = f () in
+          force := \() -> res; res }
+
 def thunkedValue : Lazy Int = delay (expensiveComputation ())
 
 -- streams with thunks
