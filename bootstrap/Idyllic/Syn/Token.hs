@@ -6,8 +6,9 @@ module Idyllic.Syn.Token
 where
 
 import Data.ByteString (ByteString)
+import Idyllic.Utils.Span (Span, slice)
 
-data Token = Token {tokenKind :: TokenKind, tokenText :: ByteString}
+data Token = Token {tokenKind :: TokenKind, tokenSpan :: Span}
   deriving (Show, Eq, Ord)
 
 data TokenKind
@@ -40,9 +41,12 @@ data TokenKind
   | TokenKindUnderscore
   deriving (Show, Eq, Ord)
 
-isKeyword :: Token -> Bool
-isKeyword t = case tokenKind t of
-  TokenKindLowercaseIdent -> go $ tokenText t
+tokenText :: Token -> ByteString -> ByteString
+tokenText t = slice (tokenSpan t)
+
+isKeyword :: Token -> ByteString -> Bool
+isKeyword t src = case tokenKind t of
+  TokenKindLowercaseIdent -> go $ tokenText t src
   _ -> False
   where
     go "use" = True
