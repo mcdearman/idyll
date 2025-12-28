@@ -42,10 +42,10 @@ data TokenKind
   deriving (Show, Eq, Ord)
 
 tokenText :: Token -> ByteString -> ByteString
-tokenText t = slice (tokenSpan t)
+tokenText t = slice t.tokenSpan
 
 isKeyword :: Token -> ByteString -> Bool
-isKeyword t src = case tokenKind t of
+isKeyword t src = case t.tokenKind of
   TokenKindLowercaseIdent -> go $ tokenText t src
   _ -> False
   where

@@ -82,9 +82,9 @@ runDefaultDriver = do
         DriverEnv
           { driverArgs = opts,
             driverPaths = SearchPaths [] [],
-            driverMode = optMode opts
+            driverMode = opts.optMode
           }
-  runDriver env $ case driverMode env of
+  runDriver env $ case env.driverMode of
     DriverModeFile fp -> do
       src <- liftIO $ B.readFile fp
       debug <- asks (optDebug . driverArgs)

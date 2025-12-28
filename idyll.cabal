@@ -57,6 +57,7 @@ executable idyllic
     TypeFamilies
     TypeSynonymInstances
     ViewPatterns
+    OverloadedRecordDot
 
   build-depends:
     array,

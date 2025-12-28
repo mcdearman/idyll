@@ -58,7 +58,7 @@ $escSimple = [0\'\"\\nrtabfv]
 
 miniml :-
 
-  $white+                   ;
+  $white+                        ;
   "--".*                         ;
 
   "("                            { \p bs -> Token TokenKindLParen (makeSpan p bs) }
