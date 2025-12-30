@@ -34,6 +34,7 @@ executable idyllic
     Idyllic.Rename.Symbol
     Idyllic.Static.Scc
     Idyllic.Syn.AST
+    Idyllic.Syn.Layout
     Idyllic.Syn.Lexer
     Idyllic.Syn.Parser
     Idyllic.Syn.Token

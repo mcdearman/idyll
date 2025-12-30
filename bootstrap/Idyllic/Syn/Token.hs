@@ -1,7 +1,10 @@
 module Idyllic.Syn.Token
   ( Token (..),
     TokenKind (..),
+    isTrivia,
+    isSpace,
     isKeyword,
+    isLayoutKeyword,
   )
 where
 
@@ -13,6 +16,9 @@ data Token = Token {tokenKind :: TokenKind, tokenSpan :: Span}
 
 data TokenKind
   = TokenKindError
+  | TokenKindTab
+  | TokenKindNewline
+  | TokenKindWhitespace
   | TokenKindUppercaseIdent
   | TokenKindLowercaseIdent
   | TokenKindOpIdent
@@ -44,6 +50,20 @@ data TokenKind
 tokenText :: Token -> ByteString -> ByteString
 tokenText t = slice t.tokenSpan
 
+isTrivia :: Token -> Bool
+isTrivia = go . tokenKind
+  where
+    go TokenKindWhitespace = True
+    go TokenKindNewline = True
+    go TokenKindTab = True
+    go _ = False
+
+isSpace :: Token -> Bool
+isSpace = go . tokenKind
+  where
+    go TokenKindWhitespace = True
+    go _ = False
+
 isKeyword :: Token -> ByteString -> Bool
 isKeyword t src = case t.tokenKind of
   TokenKindLowercaseIdent -> go $ tokenText t src
@@ -65,4 +85,14 @@ isKeyword t src = case t.tokenKind of
     go "type" = True
     go "ref" = True
     go "end" = True
+    go _ = False
+
+isLayoutKeyword :: Token -> ByteString -> Bool
+isLayoutKeyword t src = case t.tokenKind of
+  TokenKindLowercaseIdent -> go $ tokenText t src
+  _ -> False
+  where
+    go "let" = True
+    go "where" = True
+    go "with" = True
     go _ = False

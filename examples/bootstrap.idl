@@ -24,6 +24,20 @@ fun sum (xs : [Int]) : Int =
     | go (x :: xs) acc = go xs (acc + x)
   in go xs 0
 
+sum : [Int] -> Int
+sum = foldl (+) 0
+
+foldr : (a -> b -> b) -> b -> [a] -> b
+foldr _ acc [] = acc
+foldr f acc (x::xs) = f x (foldr f acc xs)
+
+sum : [Int] -> Int
+sum = go xs 0
+  where
+    go : [Int] -> Int -> Int
+    go [] acc = acc
+    go (x :: xs) acc = go xs (acc + x)
+
 -- match expressions
 fun map (f : a -> b) (xs : [a]) : [b] =
   match xs with
