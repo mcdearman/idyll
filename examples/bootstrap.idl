@@ -1,13 +1,22 @@
 -- function defs
+map : (a -> b) -> [a] -> [b]
+map _ [] = []
+map f (x :: xs) = f x :: map f xs
+
+-- where bindings
 fib : Int -> Int
 fib = go 0 1
   where
     go a b 0 = a
     go a b n = go b (a + b) (n - 1)
 
+-- guards
+fib : Int -> Int
+fib n | n <= 1 = n
+fib n = fib (n - 1) + fib (n - 2)
+
 -- let expressions
-add x y =
-  let sum = x + y in sum
+add x y = let sum = x + y in sum
 
 -- let fun expressions
 fib (n : Int) : Int =
@@ -36,8 +45,8 @@ sum = go xs 0
 -- match expressions
 map (f : a -> b) (xs : [a]) : [b] =
   match xs with
-  | [] -> []
-  | x :: xs -> f x :: map f xs
+    [] -> []
+    x :: xs -> f x :: map f xs
 
 -- if expressions
 abs (x : Int) : Int =
@@ -57,6 +66,13 @@ record Point where
 -- data defs
 data Option a = None | Some a
 
+data List a = [] | a :: List a
+
+-- layout-sensitive data declaration
+data List a where
+  [] : List a
+  (::) : a -> List a -> List a
+
 -- record access
 alice = { name = "Alice", age = 30 }
 aliceName = alice.name
@@ -65,24 +81,21 @@ aliceName = alice.name
 olderAlice = { alice with age = alice.age + 1 }
 
 -- pattern matching with records
-describePerson (Person { name, age } : Person) : String =
-  name ++ " is " ++ Int.toString age ++ " years old"
+describePerson : Person -> String
+describePerson (Person { name, age }) = name ++ " is " ++ Int.toString age ++ " years old"
 
 -- self-updating thunks
-record Thunk a {
-  force : ref (() -> a),
-}
+record Thunk a where
+  force : ref (() -> a)
 
-fun delay (f : () -> a) : Thunk a =
-  Thunk { force = \() -> let res = f () in
-          force := \() -> res; res }
+delay : (() -> a) -> Thunk a
+delay f = Thunk { force = \() -> let res = f () in force := \() -> res; res }
 
-def thunkedValue : Thunk Int = delay (expensiveComputation ())
+thunkedValue : Thunk Int = delay (expensiveComputation ())
 
 -- streams with thunks
 data Stream a where
   (::) : a -> Thunk (Stream a) -> Stream a
-end
 
 -- Operators
 + -- addition on a Int, Float, Integer, Rational
