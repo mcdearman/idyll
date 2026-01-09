@@ -1,3 +1,4 @@
+use idyllic::pipeline::Pipeline;
 use rustyline::{
     Completer, Editor, Helper, Highlighter, Hinter, error::ReadlineError, validate::Validator,
 };
@@ -44,6 +45,9 @@ fn main() {
                 }
                 rl.add_history_entry(line.as_str())
                     .expect("Failed to add history entry");
+
+                let pipeline = Pipeline::new(&line);
+                pipeline.run();
             }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
