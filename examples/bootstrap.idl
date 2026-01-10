@@ -20,7 +20,7 @@ add x y = let sum = x + y in sum
 
 -- let fun expressions
 fib : Int -> Int =
-fib (n : Int) : Int =
+fib n =
   let go a b i =
     if i = 0 then a else go b (a + b) (i - 1)
   in go 0 1 n

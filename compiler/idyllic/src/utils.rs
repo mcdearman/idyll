@@ -135,3 +135,36 @@ impl<T> Spanned<T> {
         Self { item, span }
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Located<T> {
+    pub item: T,
+    pub filename: InternedString,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct LineIndex {
+    pub line_starts: Vec<usize>,
+}
+
+impl LineIndex {
+    pub fn new(source: &str) -> Self {
+        let mut line_starts = vec![0];
+        for (i, c) in source.char_indices() {
+            if c == '\n' {
+                line_starts.push(i + 1);
+            }
+        }
+        Self { line_starts }
+    }
+
+    pub fn get_line_col(&self, pos: usize) -> (usize, usize) {
+        let line = match self.line_starts.binary_search(&pos) {
+            Ok(line) => line,
+            Err(line) => line - 1,
+        };
+        let col = pos - self.line_starts[line];
+        (line + 1, col + 1)
+    }
+}
