@@ -125,22 +125,20 @@ impl Index<Span> for str {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Spanned<T> {
-    pub item: T,
-    pub span: Span,
-}
-
-impl<T> Spanned<T> {
-    pub fn new(item: T, span: Span) -> Self {
-        Self { item, span }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Located<T> {
     pub item: T,
     pub filename: InternedString,
     pub span: Span,
+}
+
+impl<T> Located<T> {
+    pub fn new(item: T, filename: InternedString, span: Span) -> Self {
+        Self {
+            item,
+            filename,
+            span,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

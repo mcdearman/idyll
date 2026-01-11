@@ -1,8 +1,8 @@
-use crate::utils::{InternedString, Spanned};
+use crate::utils::{InternedString, Located};
 use logos::Logos;
 use std::fmt::Display;
 
-pub type Token = Spanned<TokenKind>;
+pub type Token = Located<TokenKind>;
 
 #[derive(Logos, Debug, Clone, PartialEq)]
 pub enum TokenKind {

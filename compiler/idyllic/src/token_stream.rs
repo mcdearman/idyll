@@ -2,20 +2,22 @@ use logos::{Lexer, Logos};
 
 use crate::{
     token::{Token, TokenKind},
-    utils::Span,
+    utils::{InternedString, Span},
 };
 
 #[derive(Debug, Clone)]
 pub struct TokenStream<'src> {
     logos: Lexer<'src, TokenKind>,
     peek: Option<Token>,
+    filename: InternedString,
 }
 
 impl<'src> TokenStream<'src> {
-    pub(crate) fn new(src: &'src str) -> Self {
+    pub(crate) fn new(src: &'src str, filename: InternedString) -> Self {
         Self {
             logos: TokenKind::lexer(src),
             peek: None,
+            filename,
         }
     }
 
@@ -24,8 +26,8 @@ impl<'src> TokenStream<'src> {
             Ok(t) => (t, Span::from(self.logos.span())),
             Err(_) => (TokenKind::Error, Span::from(self.logos.span())),
         }) {
-            Some((token, s)) => Token::new(token, s),
-            None => Token::new(TokenKind::Eof, Span::from(self.logos.span())),
+            Some((token, s)) => Token::new(token, self.filename, s),
+            None => Token::new(TokenKind::Eof, self.filename, Span::from(self.logos.span())),
         }
     }
 

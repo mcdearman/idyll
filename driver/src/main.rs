@@ -1,4 +1,4 @@
-use idyllic::pipeline::Pipeline;
+use idyllic::{pipeline::Pipeline, utils::InternedString};
 use rustyline::{
     Completer, Editor, Helper, Highlighter, Hinter, error::ReadlineError, validate::Validator,
 };
@@ -46,7 +46,7 @@ fn main() {
                 rl.add_history_entry(line.as_str())
                     .expect("Failed to add history entry");
 
-                let pipeline = Pipeline::new(&line);
+                let pipeline = Pipeline::new(InternedString::from("interactive"), &line);
                 pipeline.run();
             }
             Err(ReadlineError::Interrupted) => {
