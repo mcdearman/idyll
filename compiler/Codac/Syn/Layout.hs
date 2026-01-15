@@ -1,11 +1,11 @@
-module Idyllic.Syn.Layout (layout) where
+module Codac.Syn.Layout (layout) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Char8 as BSC
-import Idyllic.Syn.Token
-import Idyllic.Utils.LineIndex (LineIndex, offsetToLineCol)
-import Idyllic.Utils.Span (Span (..))
+import Codac.Syn.Token
+import Codac.Utils.LineIndex (LineIndex, offsetToLineCol)
+import Codac.Utils.Span (Span (..))
 
 layout :: LineIndex -> ByteString -> [Token] -> [Token]
 layout lineIndex src = go [1]

@@ -1,10 +1,10 @@
-module Idyllic.Syn.Parser where
+module Codac.Syn.Parser where
 
 import Control.Monad.Combinators.Expr (Operator (..), makeExprParser)
 import Data.Text (Text, pack, unpack)
 import Data.Void
-import Idyllic.Syn.AST
-import Idyllic.Utils.Span (Span (..))
+import Codac.Syn.AST
+import Codac.Utils.Span (Span (..))
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L

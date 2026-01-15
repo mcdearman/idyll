@@ -1,11 +1,11 @@
-module Idyllic.Build.Pipeline (runPipelineIO) where
+module Codac.Build.Pipeline (runPipelineIO) where
 
+import Codac.Build.Pipeline.Effect
+import Codac.Syn.Lexer (tokenize)
 import Control.Monad.Reader (MonadReader (ask), ReaderT (runReaderT))
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import Debug.Trace (trace)
-import Idyllic.Build.Pipeline.Effect
-import Idyllic.Syn.Lexer (tokenize)
 import Text.Pretty.Simple
 
 pipelineMain :: Pipeline ()

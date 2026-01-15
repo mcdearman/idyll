@@ -1,15 +1,15 @@
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Idyllic.Build.Driver (runDefaultDriver, runDriver) where
+module Codac.Build.Driver (runDefaultDriver, runDriver) where
 
+import Codac.Build.Pipeline (runPipelineIO)
+import Codac.Build.Pipeline.Effect
 import Control.Monad.Reader (MonadIO (liftIO), MonadReader, ReaderT (runReaderT), asks)
 import qualified Data.ByteString as B
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as TE
 import Debug.Trace (trace)
-import Idyllic.Build.Pipeline (runPipelineIO)
-import Idyllic.Build.Pipeline.Effect
 import Options.Applicative
 import System.Console.Haskeline
 

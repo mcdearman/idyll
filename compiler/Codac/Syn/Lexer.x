@@ -1,13 +1,13 @@
 {
-module Idyllic.Syn.Lexer (tokenize) where
-import Idyllic.Syn.Token
+module Codac.Syn.Lexer (tokenize) where
+import Codac.Syn.Token
 import Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Text.Encoding as TE
 import Data.Text (Text, stripPrefix)
 import qualified Data.Text as T
 import qualified Data.Char as Char
-import Idyllic.Utils.Span
+import Codac.Utils.Span
 import Data.Maybe (fromMaybe)
 }
 

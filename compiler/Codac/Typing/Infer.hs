@@ -1,14 +1,14 @@
 {-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE RankNTypes #-}
 
-module Idyllic.Typing.Infer where
+module Codac.Typing.Infer where
 
 import Control.Monad.ST (ST, runST)
 import Data.Map (Map)
 import Data.STRef (STRef, modifySTRef', newSTRef, readSTRef, writeSTRef)
 import Data.Text (Text)
-import Idyllic.Rename.Symbol (Symbol)
-import Idyllic.Typing.Ty (ClosedTy (..), Level, Meta (..), Ty (..))
+import Codac.Rename.Symbol (Symbol)
+import Codac.Typing.Ty (ClosedTy (..), Level, Meta (..), Ty (..))
 
 data TyError s
   = UnificationFail (Ty s) (Ty s)

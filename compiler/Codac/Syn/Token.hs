@@ -1,4 +1,4 @@
-module Idyllic.Syn.Token
+module Codac.Syn.Token
   ( Token (..),
     TokenKind (..),
     isTrivia,
@@ -8,8 +8,8 @@ module Idyllic.Syn.Token
   )
 where
 
+import Codac.Utils.Span (Span, slice)
 import Data.ByteString (ByteString)
-import Idyllic.Utils.Span (Span, slice)
 
 data Token = Token {tokenKind :: TokenKind, tokenSpan :: !Span}
   deriving (Show, Eq, Ord)

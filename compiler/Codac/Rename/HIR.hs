@@ -1,8 +1,8 @@
-module Idyllic.Rename.HIR where
+module Codac.Rename.HIR where
 
 import Data.Text (Text)
-import Idyllic.Rename.Symbol (Symbol)
-import Idyllic.Utils.Span (Span)
+import Codac.Rename.Symbol (Symbol)
+import Codac.Utils.Span (Span)
 
 type NodeId = Int
 

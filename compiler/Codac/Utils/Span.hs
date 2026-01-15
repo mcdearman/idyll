@@ -1,4 +1,4 @@
-module Idyllic.Utils.Span (Span (..), toPair, slice, Spanned (..)) where
+module Codac.Utils.Span (Span (..), toPair, slice, Spanned (..)) where
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString as BS

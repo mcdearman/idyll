@@ -1,4 +1,4 @@
-module Idyllic.Core where
+module Codac.Core where
 
 import Data.Text (Text)
 

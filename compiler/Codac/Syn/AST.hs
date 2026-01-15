@@ -1,7 +1,7 @@
-module Idyllic.Syn.AST where
+module Codac.Syn.AST where
 
+import Codac.Utils.Located (Located)
 import Data.Text (Text)
-import Idyllic.Utils.Located (Located)
 
 data Module = Module
   { moduleName :: Ident,

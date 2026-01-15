@@ -1,7 +1,7 @@
 cabal-version: 3.0
-name: idle
+name: coda
 version: 0.1.0.0
-synopsis: The Idyll programming language
+synopsis: The Coda programming language
 license: BSD-3-Clause
 license-file: LICENSE
 author: Chris McDearman
@@ -22,32 +22,33 @@ common warnings
 --   -fllvm
 --   -haddock
 --   -ddump-simpl -ddump-cmm -ddump-stg-final -ddump-to-file -dsuppress-all
-executable idyllic
+executable codac
   import: warnings
   main-is: Main.hs
   other-modules:
-    Idyllic.Build
-    Idyllic.Build.Driver
-    Idyllic.Build.Pipeline
-    Idyllic.Build.Pipeline.Effect
-    Idyllic.Core
-    Idyllic.Rename.HIR
-    Idyllic.Rename.Resolver
-    Idyllic.Rename.Symbol
-    Idyllic.Static.Scc
-    Idyllic.Syn.AST
-    Idyllic.Syn.Layout
-    Idyllic.Syn.Lexer
-    Idyllic.Syn.Parser
-    Idyllic.Syn.Token
-    Idyllic.Typing.Infer
-    Idyllic.Typing.Ty
-    Idyllic.Utils.LineIndex
-    Idyllic.Utils.Located
-    Idyllic.Utils.Span
+    Codac.Build
+    Codac.Build.Driver
+    Codac.Build.Pipeline
+    Codac.Build.Pipeline.Effect
+    Codac.Core
+    Codac.Rename.HIR
+    Codac.Rename.Resolver
+    Codac.Rename.Symbol
+    Codac.Static.Scc
+    Codac.Syn.AST
+    Codac.Syn.Layout
+    Codac.Syn.Lexer
+    Codac.Syn.Parser
+    Codac.Syn.Token
+    Codac.Typing.Infer
+    Codac.Typing.Ty
+    Codac.Utils.LineIndex
+    Codac.Utils.Located
+    Codac.Utils.Span
 
   default-extensions:
     BangPatterns
+    FlexibleInstances
     LambdaCase
     MagicHash
     MultilineStrings
@@ -58,9 +59,8 @@ executable idyllic
     ScopedTypeVariables
     TupleSections
     TypeFamilies
-    ViewPatterns
-    FlexibleInstances
     TypeSynonymInstances
+    ViewPatterns
 
   build-depends:
     array,
@@ -72,9 +72,9 @@ executable idyllic
     hashable,
     haskeline,
     intern,
+    lens,
     megaparsec,
     mtl,
-    lens,
     optics,
     optparse-applicative,
     parser-combinators,

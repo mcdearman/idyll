@@ -1,10 +1,10 @@
-module Idyllic.Rename.Resolver where
+module Codac.Rename.Resolver where
 
 import Control.Monad.State (MonadState (get, put), State, runState)
 import Data.Text (Text)
-import Idyllic.Rename.HIR
-import Idyllic.Rename.Symbol (Symbol (Symbol))
-import qualified Idyllic.Syn.AST as AST
+import Codac.Rename.HIR
+import Codac.Rename.Symbol (Symbol (Symbol))
+import qualified Codac.Syn.AST as AST
 
 -- newtype RenameError = REUnboundName Text deriving (Show, Eq)
 

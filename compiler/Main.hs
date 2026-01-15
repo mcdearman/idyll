@@ -1,6 +1,6 @@
 module Main where
 
-import Idyllic.Build.Driver (runDefaultDriver)
+import Codac.Build.Driver (runDefaultDriver)
 
 main :: IO ()
 main = do

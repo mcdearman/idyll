@@ -1,6 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 
-module Idyllic.Build where
+module Codac.Build where
 
 import Control.Monad.State
 import Data.Hashable (Hashable)

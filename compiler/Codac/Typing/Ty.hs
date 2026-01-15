@@ -1,4 +1,4 @@
-module Idyllic.Typing.Ty where
+module Codac.Typing.Ty where
 
 import Data.STRef (STRef)
 import Data.Text (Text)

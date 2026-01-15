@@ -1,4 +1,4 @@
-module Idyllic.Utils.LineIndex
+module Codac.Utils.LineIndex
   ( LineIndex (..),
     buildLineIndex,
     offsetToLineCol,

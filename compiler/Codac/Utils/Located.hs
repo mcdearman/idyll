@@ -1,7 +1,7 @@
-module Idyllic.Utils.Located where
+module Codac.Utils.Located where
 
 import Data.Text (Text)
-import Idyllic.Utils.Span (Span)
+import Codac.Utils.Span (Span)
 
 data Located a = SynNode
   { synNodeItem :: a,
