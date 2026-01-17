@@ -128,6 +128,8 @@ pub enum TokenKind {
     Def,
     #[token("let")]
     Let,
+    #[token("rec")]
+    Rec,
     #[token("in")]
     In,
     #[token("match")]
@@ -210,6 +212,7 @@ impl Display for TokenKind {
             Fun => write!(f, "Fun"),
             Def => write!(f, "Def"),
             Let => write!(f, "Let"),
+            Rec => write!(f, "Rec"),
             In => write!(f, "In"),
             If => write!(f, "If"),
             Match => write!(f, "Match"),

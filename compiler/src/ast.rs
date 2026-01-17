@@ -4,20 +4,22 @@ type Prog = Located<Package>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Package {
-    pub name: String,
-    pub modules: Vec<Module>,
+    pub name: InternedString,
+    pub modules: Vec<LModule>,
 }
+
+type LModule = Located<Module>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Module {
-    pub name: String,
-    pub decls: Vec<Decl>,
+    pub name: InternedString,
+    pub decls: Vec<LDecl>,
 }
 
-type Decl = Located<DeclKind>;
+type LDecl = Located<Decl>;
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum DeclKind {
+pub enum Decl {
     Def(Def),
     Fun(Fun),
 }
@@ -26,32 +28,59 @@ pub enum DeclKind {
 pub struct Def {
     pub name: Ident,
     pub params: Vec<Pat>,
-    pub body: Expr,
+    pub body: LExpr,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Fun {
     pub name: Ident,
-    pub params: Vec<Pat>,
-    pub body: Expr,
+    pub params: Vec<LPat>,
+    pub body: LExpr,
 }
+
+type LExpr = Located<Expr>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Lit(Lit),
     Ident(Ident),
-    App(Box<Expr>, Vec<Expr>),
-    Lambda(Vec<Pat>, Box<Expr>),
-    Let(Pat, Box<Expr>),
-    If(Box<Expr>, Box<Expr>, Box<Expr>),
-    Match(Box<Expr>, Vec<(Pat, Expr)>),
+    App(Box<LExpr>, Vec<LExpr>),
+    Lambda(Vec<LPat>, Box<LExpr>),
+    Let(LPat, Box<LExpr>),
+    If(Box<LExpr>, Box<LExpr>, Box<LExpr>),
+    Match(Box<LExpr>, Vec<(LPat, LExpr)>),
+    Prefix(PrefixOp, Box<LExpr>),
+    Infix(Box<LExpr>, InfixOp, Box<LExpr>),
     Unit,
 }
 
-type Pat = Located<PatKind>;
+#[derive(Debug, Clone, PartialEq)]
+pub enum PrefixOp {
+    Neg,
+    Not,
+}
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum PatKind {
+pub enum InfixOp {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
+    And,
+    Or,
+    Eq,
+    Neq,
+    Lt,
+    Lte,
+    Gt,
+    Gte,
+}
+
+type LPat = Located<Pat>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Pat {
     Wildcard,
     Lit(Lit),
     Ident(Ident),
