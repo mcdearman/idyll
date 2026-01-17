@@ -6,7 +6,11 @@ lcm : Int -> Int -> Int
 lcm a b = a * b / gcd a b
 
 @pub
-sieve : (Ord a, Num a) => [a] -> [a]
+data Stream a where
+  (::) : a -> Lazy (Stream a) -> Stream a
+
+@pub
+sieve : Stream Int -> Stream Int
 sieve xs = sieve' xs Map.empty
   where
     sieve' [] table = []
@@ -17,7 +21,7 @@ sieve xs = sieve' xs Map.empty
       where
         reinsert table prime = Map.insertWith (++) (x+prime) [prime] table
 
-sieve : [Int] -> [Int]
+sieve : Stream Int -> Stream Int
 sieve xs = sieve' xs Map.empty
   where {
     sieve' [] table = [];
@@ -30,7 +34,7 @@ sieve xs = sieve' xs Map.empty
       }
   }
 
-fun sieve (xs : [Int]) : [Int] = sieve' xs Map.empty
+fun sieve (xs : Stream Int) : Stream Int = sieve' xs Map.empty
 
 fun sieve' [] table = []
   | sieve' (x : xs) table =
@@ -38,7 +42,7 @@ fun sieve' [] table = []
     | Nothing -> x : sieve' xs (Map.insert (x * x) [x] table)
     | Just facts -> sieve' xs (foldl reinsert (Map.delete x table) facts)
 
-fun sieve' (xs : [Int]) (table : Map Int [Int]) : [Int] =
+fun sieve' (xs : Stream Int) (table : Map Int [Int]) : Stream Int =
   match xs table with 
   | [] table = []
   | (x : xs) table =
@@ -47,13 +51,6 @@ fun sieve' (xs : [Int]) (table : Map Int [Int]) : [Int] =
     | Just facts -> sieve' xs (foldl reinsert (Map.delete x table) facts)
 
 fun reinsert table prime = Map.insertWith (++) (x + prime) [prime] table
-
-codata Stream a where
-  head : Stream a -> a
-  tail : Stream a -> Stream a
-
-codata Stream a where
-  (::) : a -> Stream a -> Stream a
 
 fibs : Stream Integer
 fibs = 0 :: 1 :: zipWith (+) fibs (drop 1 fibs)

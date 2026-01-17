@@ -1,4 +1,4 @@
-use idyllic::{pipeline::Pipeline, utils::InternedString};
+use codac::{pipeline::Pipeline, utils::InternedString};
 use rustyline::{
     Completer, Editor, Helper, Highlighter, Hinter, error::ReadlineError, validate::Validator,
 };

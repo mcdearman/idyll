@@ -159,6 +159,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "coda-rts"
+version = "0.1.0"
+dependencies = [
+ "env",
+ "env_logger",
+ "libc",
+]
+
+[[package]]
+name = "codac"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "colored",
+ "env_logger",
+ "insta",
+ "itertools",
+ "lasso",
+ "log",
+ "logos",
+ "once_cell",
+ "pretty",
+ "rustyline",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -210,8 +236,8 @@ name = "driver"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "codac",
  "env_logger",
- "idyllic",
  "insta",
  "log",
  "rustyline",
@@ -341,32 +367,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc627f471c528ff0c4a49e1d5e60450c8f6461dd6d10ba9dcd3a61d3dff7728d"
 dependencies = [
  "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "idyll-rts"
-version = "0.1.0"
-dependencies = [
- "env",
- "env_logger",
- "libc",
-]
-
-[[package]]
-name = "idyllic"
-version = "0.1.0"
-dependencies = [
- "clap",
- "colored",
- "env_logger",
- "insta",
- "itertools",
- "lasso",
- "log",
- "logos",
- "once_cell",
- "pretty",
- "rustyline",
 ]
 
 [[package]]
