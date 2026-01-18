@@ -46,7 +46,7 @@ fn main() {
                 rl.add_history_entry(line.as_str())
                     .expect("Failed to add history entry");
 
-                let pipeline = Pipeline::new(InternedString::from("interactive"), &line);
+                let pipeline = Pipeline::new(&line, InternedString::from("interactive"));
                 pipeline.run();
             }
             Err(ReadlineError::Interrupted) => {

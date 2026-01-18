@@ -3,13 +3,13 @@ use itertools::Itertools;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Pipeline<'src> {
-    filename: InternedString,
     src: &'src str,
+    filename: InternedString,
 }
 
 impl<'src> Pipeline<'src> {
-    pub fn new(filename: InternedString, src: &'src str) -> Self {
-        Self { filename, src }
+    pub fn new(src: &'src str, filename: InternedString) -> Self {
+        Self { src, filename }
     }
 
     pub fn run(&self) {
